@@ -1,0 +1,537 @@
+{
+    "questions": [
+      {
+        "id": 1,
+        "category": "Broker Configuration",
+        "question": "A Kafka cluster with replication.factor=3 and min.insync.replicas=2 experiences a broker failure. If a producer uses acks=all, what happens when two out of three brokers for a partition are unavailable?",
+        "options": [
+          "The producer will receive a success response as long as one broker acknowledges",
+          "The producer will receive a NotEnoughReplicasException",
+          "The producer will wait indefinitely until all brokers are available",
+          "The producer request is automatically redirected to another partition"
+        ],
+        "answer": "The producer will receive a NotEnoughReplicasException",
+        "explanation": "With acks=all and min.insync.replicas=2, the producer requires acknowledgment from at least 2 replicas. When only 1 replica is available, it cannot satisfy this requirement, resulting in NotEnoughReplicasException."
+      },
+      {
+        "id": 2,
+        "category": "Producer Configuration",
+        "question": "A producer application is sending high volumes of data to Kafka with batch.size=16384 and linger.ms=0. To improve throughput, the team increases batch.size to 32768 but sees minimal improvement. What configuration change would most effectively increase throughput?",
+        "options": [
+          "Increase max.in.flight.requests.per.connection",
+          "Set linger.ms=10",
+          "Set acks=1 instead of acks=all",
+          "Enable compression.type=snappy"
+        ],
+        "answer": "Set linger.ms=10",
+        "explanation": "With linger.ms=0, batches are sent immediately regardless of batch.size. Setting linger.ms>0 allows time for batches to fill before sending, significantly improving throughput when message production rate doesn't immediately fill batches."
+      },
+      {
+        "id": 3,
+        "category": "Consumer Configuration",
+        "question": "An application processes messages using a consumer with enable.auto.commit=true and auto.commit.interval.ms=5000. If the application crashes after processing records but before the auto-commit interval triggers, what scenario occurs when the application restarts?",
+        "options": [
+          "All processed records will be processed again due to uncommitted offsets",
+          "No records will be processed again because offsets are stored in memory",
+          "Only records received in the last 5 seconds will be processed again",
+          "The application will pick up from the last message it was processing"
+        ],
+        "answer": "All processed records will be processed again due to uncommitted offsets",
+        "explanation": "With auto-commits, offsets are only committed every auto.commit.interval.ms period. If the application crashes before the interval triggers, no offsets are committed, causing all processed messages to be consumed again on restart."
+      },
+      {
+        "id": 4,
+        "category": "Kafka Streams",
+        "question": "A Kafka Streams application with 4 instances is processing data from a topic with 8 partitions. If a 5th instance is added, what happens?",
+        "options": [
+          "The 5th instance will remain idle as there are only 8 partitions for 4 instances",
+          "The 5th instance will cause rebalancing, with some partitions being reassigned to it",
+          "The 5th instance will only get assigned if an existing instance fails",
+          "The 5th instance will automatically increase the partitions to 10"
+        ],
+        "answer": "The 5th instance will cause rebalancing, with some partitions being reassigned to it",
+        "explanation": "When a new instance joins, Kafka Streams triggers a rebalance, redistributing the partitions across all instances including the new one. Each instance can process multiple partitions, so the 5th instance will get assigned partitions."
+      },
+      {
+        "id": 5,
+        "category": "Schema Registry",
+        "question": "In an Avro schema, adding a new field without a default value is what type of schema evolution?",
+        "options": [
+          "Backward compatible",
+          "Forward compatible",
+          "Fully compatible",
+          "Breaking compatibility"
+        ],
+        "answer": "Forward compatible",
+        "explanation": "Adding a field without a default value is forward compatible: new consumers (with the new schema) can read data produced with the old schema because they know to use defaults, but old consumers can't read new data as they don't know how to handle the new field."
+      },
+      {
+        "id": 6,
+        "category": "Kafka Connect",
+        "question": "A JDBC Source Connector is configured to import data from 4 database tables into Kafka. The connector is created with max.tasks=2 deployed on a cluster with 5 workers. How many tasks will be launched?",
+        "options": [
+          "4 tasks (one per table)",
+          "2 tasks (as specified by max.tasks)",
+          "5 tasks (one per worker)",
+          "1 task (JDBC connector defaults to single-task mode)"
+        ],
+        "answer": "2 tasks (as specified by max.tasks)",
+        "explanation": "The JDBC Source Connector can create multiple tasks, but the max.tasks setting limits the maximum number of tasks that can be created, regardless of how many tables are being imported or how many workers are available."
+      },
+      {
+        "id": 7, 
+        "category": "Security",
+        "question": "A Kafka cluster has SSL enabled for data encryption. Which Kafka performance optimization is lost when using SSL?",
+        "options": [
+          "Batch compression",
+          "Zero-copy optimization",
+          "Client-side partitioning",
+          "Producer batching"
+        ],
+        "answer": "Zero-copy optimization",
+        "explanation": "Zero-copy optimization allows Kafka to transfer data directly from the file system to the network without copying it into user space. SSL requires data to be loaded into the JVM for encryption/decryption, eliminating the zero-copy advantage."
+      },
+      {
+        "id": 8,
+        "category": "Topic Configuration",
+        "question": "A compacted topic has a record with key K and value V1. Later, a new message arrives with key K and value V2. Finally, a tombstone message with key K and null value arrives. After compaction runs, what will exist in the log for key K?",
+        "options": [
+          "K:V1 (first message keeps precedence)",
+          "K:V2 (last non-null value remains)",
+          "Nothing (tombstone removes all messages with that key)",
+          "K:null (tombstone value is preserved)"
+        ],
+        "answer": "Nothing (tombstone removes all messages with that key)",
+        "explanation": "Log compaction preserves the most recent value for each key. When a tombstone (null value) is the most recent message for a key, after compaction runs, all messages with that key (including the tombstone itself) will be removed."
+      },
+      {
+        "id": 9,
+        "category": "Kafka Architecture",
+        "question": "When is log compaction triggered in Kafka?",
+        "options": [
+          "Every time a message is sent to Kafka",
+          "Every time a message is flushed to disk",
+          "Every time a segment is closed if the dirty ratio threshold is met",
+          "Every time a new partition is created"
+        ],
+        "answer": "Every time a segment is closed if the dirty ratio threshold is met",
+        "explanation": "Log compaction is evaluated when a segment is closed. It will be triggered if enough data is 'dirty' (eligible for compaction) according to the configured dirty ratio threshold."
+      },
+      {
+        "id": 10,
+        "category": "Broker Configuration",
+        "question": "In a Kafka cluster configured with multiple log retention settings (log.retention.hours=168, log.retention.minutes=10080, log.retention.ms=604800000), which one takes precedence?",
+        "options": [
+          "log.retention.hours takes precedence",
+          "log.retention.ms takes precedence",
+          "log.retention.minutes takes precedence",
+          "The smallest resulting retention period takes precedence"
+        ],
+        "answer": "The smallest resulting retention period takes precedence",
+        "explanation": "When multiple retention settings are specified, Kafka uses the configuration that results in the smallest retention period. In this case, all values equal 7 days, so they're equivalent."
+      },
+      {
+        "id": 11,
+        "category": "Producer Configuration",
+        "question": "A developer notices duplicated messages in a Kafka topic. The producer configuration shows retries=3 and max.in.flight.requests.per.connection=5. What configuration change would prevent duplicates without reducing throughput?",
+        "options": [
+          "Set retries=0",
+          "Enable the idempotent producer with enable.idempotence=true",
+          "Set max.in.flight.requests.per.connection=1",
+          "Decrease request.timeout.ms"
+        ],
+        "answer": "Enable the idempotent producer with enable.idempotence=true",
+        "explanation": "The idempotent producer guarantees exactly-once delivery semantics between producer and broker, preventing duplicates even with retries. Unlike setting max.in.flight.requests.per.connection=1, it doesn't reduce throughput."
+      },
+      {
+        "id": 12,
+        "category": "Consumer Configuration",
+        "question": "A consumer group with 5 consumers is processing a topic with 10 partitions. If 3 more consumers join the group, what will happen?",
+        "options": [
+          "The new consumers will remain idle until someone leaves",
+          "Each of the 8 consumers will process exactly one partition, with 2 partitions unassigned",
+          "All 8 consumers will be active with some processing more partitions than others",
+          "The rebalance will fail because there are more consumers than needed"
+        ],
+        "answer": "All 8 consumers will be active with some processing more partitions than others",
+        "explanation": "Kafka assigns partitions to consumers in a consumer group. With 10 partitions and 8 consumers, each consumer will get at least one partition, but some will handle two partitions to cover all 10."
+      },
+      {
+        "id": 13,
+        "category": "Kafka Streams",
+        "question": "A Kafka Streams application needs to join a KStream with reference data that changes infrequently. Which approach is most efficient if the reference data isn't distributed across the same number of partitions?",
+        "options": [
+          "Repartition the KStream to match the reference data's partitioning",
+          "Use a KTable join with co-partitioning",
+          "Use a GlobalKTable for the reference data",
+          "Use a foreign-key join"
+        ],
+        "answer": "Use a GlobalKTable for the reference data",
+        "explanation": "GlobalKTable replicates the entire data to each instance and doesn't require co-partitioning for joins. It's ideal for reference data that changes infrequently and needs to be joined with a KStream, regardless of partitioning."
+      },
+      {
+        "id": 14,
+        "category": "Schema Registry",
+        "question": "A team using Schema Registry with multiple applications notices that schema evolution is being rejected despite configuring BACKWARD compatibility. What is the most likely cause?",
+        "options": [
+          "The schema is being registered with a different subject name",
+          "The schema requires FORWARD compatibility instead",
+          "The schema contains complex types not supported by Avro",
+          "One application is using JsonSerializer instead of AvroSerializer"
+        ],
+        "answer": "The schema contains complex types not supported by Avro",
+        "explanation": "BACKWARD compatibility ensures new consumers can read old data. The most likely issue is that the new schema contains complex types or structure changes that break the compatibility rules, not a configuration issue."
+      },
+      {
+        "id": 15,
+        "category": "Kafka Connect",
+        "question": "A JDBC Sink Connector is being used to write data from a Kafka topic with 15 partitions to a database. If max.tasks=5, what effect will increasing to max.tasks=20 have?",
+        "options": [
+          "20 tasks will be created, each handling a portion of the topic's data",
+          "Only 15 tasks will be created, limited by the number of partitions",
+          "5 tasks will still be used, as the workers need to be increased first",
+          "The connector will fail as max.tasks exceeds the partition count"
+        ],
+        "answer": "Only 15 tasks will be created, limited by the number of partitions",
+        "explanation": "For a Sink Connector, the maximum number of tasks that can be created is limited by the number of partitions in the topic. With 15 partitions, at most 15 tasks can be created, regardless of the max.tasks setting."
+      },
+      {
+        "id": 16,
+        "category": "Security",
+        "question": "A Kafka cluster has ACLs enabled. A developer moves a producer application to a new server and it fails with authorization errors. What's the likely cause?",
+        "options": [
+          "The developer didn't update the JAAS configuration file",
+          "The ACL is bound to the previous server's hostname or IP address",
+          "The producer is attempting to write to a different topic",
+          "The SSL certificates haven't been copied to the new server"
+        ],
+        "answer": "The ACL is bound to the previous server's hostname or IP address",
+        "explanation": "Kafka ACLs can include a 'Host' filter that restricts permissions to specific IPs or hostnames. When moving to a new server with a different IP, the existing ACL won't allow access from the new location."
+      },
+      {
+        "id": 17,
+        "category": "Topic Configuration",
+        "question": "A topic is configured with cleanup.policy=compact,delete, retention.ms=86400000, and min.cleanable.dirty.ratio=0.5. How will the log cleanup behave?",
+        "options": [
+          "Messages older than 1 day will be deleted first, then remaining messages will be compacted",
+          "Messages will be compacted, and any remaining messages older than 1 day will be deleted",
+          "Either compaction or deletion will occur independently, whichever threshold is reached first",
+          "The policies conflict and the broker will use the default (deletion)"
+        ],
+        "answer": "Messages older than 1 day will be deleted first, then remaining messages will be compacted",
+        "explanation": "With both compact and delete policies, Kafka first applies the deletion policy to remove old segments, then compaction runs on the remaining segments. The compaction will only occur if the min.cleanable.dirty.ratio threshold is met."
+      },
+      {
+        "id": 18,
+        "category": "Kafka Architecture",
+        "question": "In a Kafka cluster with 5 brokers, how is the Controller selected?",
+        "options": [
+          "The broker with the lowest broker.id becomes the Controller",
+          "The first broker to create a particular znode in ZooKeeper becomes the Controller",
+          "The broker with the highest uptime is selected as the Controller",
+          "Administrators manually assign a broker to be the Controller"
+        ],
+        "answer": "The first broker to create a particular znode in ZooKeeper becomes the Controller",
+        "explanation": "The Controller in Kafka is elected based on which broker first successfully creates an ephemeral node in ZooKeeper. It's not predetermined based on broker.id or other attributes."
+      },
+      {
+        "id": 19,
+        "category": "Consumer Configuration",
+        "question": "A consumer processes records that take 8 minutes per batch. After upgrading Kafka, the consumer keeps disconnecting and triggering rebalances. What's the most likely cause?",
+        "options": [
+          "The consumer.id format changed in the new version",
+          "The max.poll.interval.ms default was decreased in the new version",
+          "The session.timeout.ms default was increased in the new version",
+          "The heartbeat.interval.ms is causing too much network traffic"
+        ],
+        "answer": "The max.poll.interval.ms default was decreased in the new version",
+        "explanation": "max.poll.interval.ms controls the maximum time between poll() calls before a consumer is considered failed. If this default decreased in the new version, and processing takes 8 minutes, the consumer would be disconnected before finishing processing."
+      },
+      {
+        "id": 20,
+        "category": "Producer Configuration",
+        "question": "A producer sends a message with a key to a topic with 10 partitions. Later, the topic is expanded to 20 partitions. What happens to messages with the same key?",
+        "options": [
+          "New messages will go to the same partition as before",
+          "New messages may go to a different partition than before",
+          "The key hash calculation ensures partition consistency regardless of partition count",
+          "The producer needs to be restarted to recognize the new partition count"
+        ],
+        "answer": "New messages may go to a different partition than before",
+        "explanation": "When partition count changes, the key hashing algorithm (typically key.hashCode() % numPartitions) results in different partition assignments. This breaks the guarantee that 'same key goes to same partition'."
+      },
+      {
+        "id": 21,
+        "category": "Kafka Streams",
+        "question": "A Kafka Streams application needs to calculate a moving average over a 5-minute window, updated every minute. Which window type should be used?",
+        "options": [
+          "Tumbling window",
+          "Hopping window",
+          "Session window",
+          "Sliding window"
+        ],
+        "answer": "Hopping window",
+        "explanation": "Hopping windows have fixed sizes and advance by a specified interval, creating overlapping windows. A 5-minute window advancing every minute creates exactly the moving average behavior required."
+      },
+      {
+        "id": 22,
+        "category": "Schema Registry",
+        "question": "Where does Schema Registry store schemas?",
+        "options": [
+          "In ZooKeeper",
+          "In the Schema Registry's embedded SQL database",
+          "In the _schemas topic in Kafka",
+          "In the message bytes themselves"
+        ],
+        "answer": "In the _schemas topic in Kafka",
+        "explanation": "Schema Registry stores all schemas in the _schemas Kafka topic, not in ZooKeeper or an embedded database. This provides durability and simplifies Schema Registry deployment."
+      },
+      {
+        "id": 23,
+        "category": "Kafka Connect",
+        "question": "What happens if a Single Message Transform in a Kafka Connect pipeline throws an exception while processing a record?",
+        "options": [
+          "The connector automatically skips that record and continues processing",
+          "The connector fails and needs to be restarted manually",
+          "The record is sent to a dead letter queue if configured, otherwise the connector fails",
+          "The record is retried indefinitely until it succeeds"
+        ],
+        "answer": "The record is sent to a dead letter queue if configured, otherwise the connector fails",
+        "explanation": "By default, any transformation error causes connector failure. With errors.deadletterqueue.topic.name configured, failed records go to that topic and the connector continues processing."
+      },
+      {
+        "id": 24,
+        "category": "Security",
+        "question": "In a Kafka cluster with SASL/SCRAM authentication, what must be configured on the broker side?",
+        "options": [
+          "A list of allowed users with usernames and passwords in server.properties",
+          "A reference to an external LDAP server in server.properties",
+          "At least one SCRAM credential created using kafka-configs.sh tool",
+          "Nothing; SASL/SCRAM doesn't require broker-side configuration"
+        ],
+        "answer": "At least one SCRAM credential created using kafka-configs.sh tool",
+        "explanation": "For SASL/SCRAM, brokers need credentials created with the kafka-configs.sh tool using the --add-config option specifying users and passwords. These credentials are stored in ZooKeeper, not in server.properties."
+      },
+      {
+        "id": 25,
+        "category": "Kafka Architecture",
+        "question": "What is the purpose of the high watermark in Kafka?",
+        "options": [
+          "It prevents brokers from running out of disk space",
+          "It indicates the maximum disk space allowed for a partition",
+          "It defines the latest offset that all in-sync replicas have received",
+          "It sets the maximum number of messages that can be sent per second"
+        ],
+        "answer": "It defines the latest offset that all in-sync replicas have received",
+        "explanation": "The high watermark is the offset of the last message that has been successfully replicated to all in-sync replicas. Consumers can only read up to this offset, ensuring they only see messages that won't be lost if the leader fails."
+      },
+      {
+        "id": 26,
+        "category": "Broker Configuration",
+        "question": "A 9-node ZooKeeper ensemble is used for a Kafka cluster. How many ZooKeeper servers can fail before the ensemble can't function?",
+        "options": [
+          "2 servers",
+          "3 servers",
+          "4 servers",
+          "5 servers"
+        ],
+        "answer": "4 servers",
+        "explanation": "A ZooKeeper ensemble requires a majority (quorum) to function. For a 9-node ensemble, the quorum is 5 nodes (majority). Therefore, it can tolerate up to 4 node failures while maintaining a quorum of 5."
+      },
+      {
+        "id": 27,
+        "category": "Consumer Configuration",
+        "question": "A consumer using enable.auto.commit=false crashes after processing messages but before committing offsets. What happens when it restarts?",
+        "options": [
+          "It will start from where it crashed, using ZooKeeper's saved state",
+          "It will start from the latest offset in the partition",
+          "It will start from the earliest offset in the partition",
+          "It will start from the last committed offset, reprocessing all messages since then"
+        ],
+        "answer": "It will start from the last committed offset, reprocessing all messages since then",
+        "explanation": "Without auto-commit, a consumer must explicitly commit offsets. If it crashes before committing, it will restart from the last successfully committed offset, reprocessing all messages processed since that commit."
+      },
+      {
+        "id": 28,
+        "category": "Kafka Streams",
+        "question": "What determines the maximum parallelism of a Kafka Streams application?",
+        "options": [
+          "The num.stream.threads configuration setting",
+          "The number of partitions in the input topics",
+          "The number of application instances deployed",
+          "The number of machines in the Kafka cluster"
+        ],
+        "answer": "The number of partitions in the input topics",
+        "explanation": "Kafka Streams parallelism is limited by the number of input topic partitions. Each partition can only be processed by one task at a time, so adding more instances beyond the partition count won't increase parallelism."
+      },
+      {
+        "id": 29,
+        "category": "Topic Configuration",
+        "question": "A topic has 6 partitions with replication.factor=3. After adding 3 new brokers to the cluster (for a total of 6), what happens to the partition distribution?",
+        "options": [
+          "Partitions are automatically rebalanced across all 6 brokers",
+          "New partitions will use the new brokers, but existing partitions stay on their original brokers",
+          "No change occurs until partition reassignment is manually triggered",
+          "Only leader replicas move to the new brokers"
+        ],
+        "answer": "No change occurs until partition reassignment is manually triggered",
+        "explanation": "Kafka doesn't automatically redistribute existing partitions when brokers are added. A manual partition reassignment is required to rebalance partitions across the expanded broker set."
+      },
+      {
+        "id": 30,
+        "category": "KSQL",
+        "question": "A financial services company needs to perform real-time analytics on payment transactions coming into a Kafka topic. The analytics team has strong SQL skills but minimal programming experience. What's the best approach?",
+        "options": [
+          "Implement a Kafka Streams application with a SQL-like DSL",
+          "Use ksqlDB to create streams and materialized views of the transaction data",
+          "Deploy Kafka Connect with a JDBC sink connector to write to an analytics database",
+          "Write a custom consumer that processes the data and queries an SQL database"
+        ],
+        "answer": "Use ksqlDB to create streams and materialized views of the transaction data",
+        "explanation": "ksqlDB provides SQL-like syntax for stream processing, making it ideal for SQL-skilled teams with minimal programming experience. It allows creating streams and tables directly from Kafka topics with familiar SQL syntax."
+      },
+      {
+        "id": 31,
+        "category": "Kafka Connect",
+        "question": "A team is using Kafka Connect with JSON data and encounters this error: 'JsonDeserializer with schemas.enable requires schema and payload fields'. What's the solution?",
+        "options": [
+          "Set schemas.enable=false in the connector configuration",
+          "Add schema and payload fields to every JSON message",
+          "Switch to using AvroConverter instead of JsonConverter",
+          "Configure a Single Message Transform to add schema fields"
+        ],
+        "answer": "Set schemas.enable=false in the connector configuration",
+        "explanation": "This error occurs when using JsonConverter with schemas.enable=true on plain JSON without schema and payload wrapper fields. Setting key.converter.schemas.enable=false and value.converter.schemas.enable=false fixes it."
+      },
+      {
+        "id": 32,
+        "category": "Producer Configuration",
+        "question": "A producer application occasionally receives TimeoutExceptions when sending large messages. Which configuration would most effectively resolve this issue?",
+        "options": [
+          "Increase linger.ms to batch more messages",
+          "Increase request.timeout.ms to allow more time for broker responses",
+          "Enable compression to reduce message size",
+          "Increase max.block.ms to allow more time for buffer space to free up"
+        ],
+        "answer": "Increase request.timeout.ms to allow more time for broker responses",
+        "explanation": "TimeoutExceptions occur when the broker doesn't respond within request.timeout.ms. Large messages take longer to process, so increasing this timeout gives the broker more time to handle large messages before timing out."
+      },
+      {
+        "id": 33,
+        "category": "Consumer Configuration",
+        "question": "A consumer application performs complex calculations on each message, averaging 30 seconds per batch. When deployed in production, it triggers rebalances every few minutes. How can this be fixed?",
+        "options": [
+          "Decrease session.timeout.ms to accommodate the processing time",
+          "Increase max.poll.interval.ms to exceed the processing time",
+          "Use manual partition assignment instead of subscribe()",
+          "Decrease max.poll.records to process fewer records per batch"
+        ],
+        "answer": "Increase max.poll.interval.ms to exceed the processing time",
+        "explanation": "max.poll.interval.ms limits how long a consumer can go between poll() calls. With 30-second processing, the default (5 minutes) should be enough, but production might have larger batches. Increasing this value prevents premature rebalances."
+      },
+      {
+        "id": 34,
+        "category": "Kafka Streams",
+        "question": "A Kafka Streams application using RocksDB for state storage restarts frequently due to container orchestration. What can be done to significantly reduce recovery time?",
+        "options": [
+          "Increase the number of stream threads",
+          "Mount a persistent volume for RocksDB",
+          "Decrease state.cleanup.delay.ms",
+          "Enable standby replicas for the state stores"
+        ],
+        "answer": "Mount a persistent volume for RocksDB",
+        "explanation": "With a persistent volume, RocksDB state is preserved across restarts, avoiding full recovery from Kafka changelog topics. This dramatically reduces restart time since only missing updates need to be recovered."
+      },
+      {
+        "id": 35,
+        "category": "Schema Registry",
+        "question": "What protocol does the Schema Registry use for client communication?",
+        "options": [
+          "The Kafka binary protocol",
+          "HTTP/HTTPS REST",
+          "SASL/PLAIN over TLS",
+          "A custom binary protocol"
+        ],
+        "answer": "HTTP/HTTPS REST",
+        "explanation": "Schema Registry exposes a REST API over HTTP/HTTPS for clients to register and retrieve schemas, not the Kafka binary protocol or other communication methods."
+      },
+      {
+        "id": 36,
+        "category": "Monitoring",
+        "question": "Which metric is most important to monitor for detecting a consumer falling behind producers?",
+        "options": [
+          "consumer-fetch-manager-metrics:records-lag-max",
+          "consumer-fetch-manager-metrics:records-consumed-rate",
+          "consumer-coordinator-metrics:commit-latency-avg",
+          "consumer-node-metrics:incoming-byte-rate"
+        ],
+        "answer": "consumer-fetch-manager-metrics:records-lag-max",
+        "explanation": "records-lag-max shows the maximum lag in terms of number of records for any partition in the consumer group. It's the most direct indicator of a consumer falling behind producers."
+      },
+      {
+        "id": 37,
+        "category": "Kafka Architecture",
+        "question": "What does Kafka's zero-copy optimization refer to?",
+        "options": [
+          "Not copying data between producer threads",
+          "Not making backup copies of messages on disk",
+          "Transferring data directly from file system cache to network socket",
+          "Avoiding copies by using reference counting for messages"
+        ],
+        "answer": "Transferring data directly from file system cache to network socket",
+        "explanation": "Zero-copy optimization in Kafka transfers data directly from disk (or page cache) to the network socket without copying it into the application's memory, significantly improving throughput."
+      },
+      {
+        "id": 38,
+        "category": "Kafka Connect",
+        "question": "Where are Kafka Connect offsets stored in distributed mode?",
+        "options": [
+          "In ZooKeeper under /connect/offsets",
+          "In a dedicated Kafka topic specified by offset.storage.topic",
+          "In a file on each worker's local filesystem",
+          "In the __consumer_offsets topic"
+        ],
+        "answer": "In a dedicated Kafka topic specified by offset.storage.topic",
+        "explanation": "In distributed mode, Kafka Connect stores connector offsets in a dedicated Kafka topic specified by the offset.storage.topic configuration, not in ZooKeeper or local files."
+      },
+      {
+        "id": 39,
+        "category": "Topic Configuration",
+        "question": "A topic is used for storing user session data with cleanup.policy=compact. If User1 has multiple session records with the same key but different values, what will remain after compaction?",
+        "options": [
+          "All session records for User1 will be preserved",
+          "Only the first session record for User1 will be preserved",
+          "Only the most recent session record for User1 will be preserved",
+          "All session records will be deleted during compaction"
+        ],
+        "answer": "Only the most recent session record for User1 will be preserved",
+        "explanation": "Log compaction retains only the most recent message for each key. For User1's session data with the same key, only the latest record will be preserved after compaction runs."
+      },
+      {
+        "id": 40,
+        "category": "Security",
+        "question": "A financial application needs to ensure that only authorized clients can produce to sensitive topics. Which authentication mechanism provides the strongest security?",
+        "options": [
+          "SASL/PLAIN",
+          "SASL/SCRAM",
+          "SSL/TLS with client certificates",
+          "IP-based filtering with allow_principal rules"
+        ],
+        "answer": "SSL/TLS with client certificates",
+        "explanation": "SSL/TLS with client certificates provides the strongest security by verifying both server and client identities using PKI. Each client needs its own certificate, allowing precise control over client authentication."
+      },
+      {
+        "id": 41,
+        "category": "Consumer Configuration",
+        "question": "What happens if a consumer sets auto.offset.reset=none and tries to read from a partition with no committed offset?",
+        "options": [
+          "It starts reading from the earliest available offset",
+          "It starts reading from the latest offset",
+          "It throws an exception and stops consuming",
+          "It creates a new consumer group"
+        ],
+        "answer": "It throws an exception and stops consuming",
+        "explanation": "With auto.offset.reset=none,"
+    }
+]
+}

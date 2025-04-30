@@ -1,0 +1,125 @@
+{
+  "domain": "Kafka Connect",
+  "questions": [
+    {
+      "id": 1,
+      "question": "In Kafka Connect, what is the significance of the tasks.max configuration for a connector?",
+      "options": [
+        "It specifies the maximum number of tasks that can be created for the connector, enabling parallel data processing",
+        "It limits the maximum number of records that each task can process in a single batch",
+        "It defines the maximum number of connector instances that can run simultaneously in the Kafka Connect cluster",
+        "It sets the upper limit on the number of topic partitions that can be read or written by the connector"
+      ],
+      "answer": "It specifies the maximum number of tasks that can be created for the connector, enabling parallel data processing",
+      "explanation": "The tasks.max configuration in Kafka Connect specifies the maximum number of tasks that can be created for a connector. Tasks are the actual units of parallelism in Kafka Connect. By increasing tasks.max, you can improve throughput by processing data in parallel across multiple tasks. For source connectors, this often means reading from different parts of the external system concurrently. For sink connectors, the maximum parallelism is typically limited by the number of partitions in the source topic, as each task processes a subset of those partitions."
+    },
+    {
+      "id": 2,
+      "question": "What is the relationship between the number of sink connector tasks and the number of partitions in the source topic?",
+      "options": [
+        "The number of sink tasks should be less than or equal to the number of partitions",
+        "The number of sink tasks should be greater than the number of partitions for optimal performance",
+        "The number of sink tasks must exactly match the number of partitions",
+        "There is no relationship between sink tasks and source topic partitions"
+      ],
+      "answer": "The number of sink tasks should be less than or equal to the number of partitions",
+      "explanation": "For sink connectors, the number of tasks should be less than or equal to the number of partitions in the source topic. This is because each task processes a subset of the topic's partitions, and a task cannot process a fraction of a partition. If you configure more tasks than there are partitions, some tasks will remain idle. For optimal resource utilization, it's recommended to set tasks.max to a value less than or equal to the partition count. If the goal is maximum parallelism, setting it equal to the partition count allows each task to handle a single partition."
+    },
+    {
+      "id": 3,
+      "question": "What happens when a Kafka Connect worker fails in a distributed Connect cluster?",
+      "options": [
+        "All connectors and tasks running on that worker are permanently lost and must be manually recreated",
+        "The tasks running on the failed worker continue execution but enter a degraded performance mode",
+        "The Connect cluster is completely shut down and requires manual restart of all workers",
+        "The tasks from the failed worker are redistributed among the remaining workers in the cluster"
+      ],
+      "answer": "The tasks from the failed worker are redistributed among the remaining workers in the cluster",
+      "explanation": "In a distributed Kafka Connect cluster, when a worker fails, the cluster automatically detects the failure and redistributes the tasks that were running on that worker among the remaining active workers. This self-healing capability is made possible by the persistent storage of connector configurations, task states, and offsets in dedicated Kafka topics (config.storage.topic, status.storage.topic, and offset.storage.topic). The rebalancing process ensures continued data movement with minimal disruption, demonstrating Kafka Connect's built-in fault tolerance and high availability capabilities."
+    },
+    {
+      "id": 4,
+      "question": "In a Kafka Connect distributed mode deployment, what is the purpose of the config.storage.topic configuration?",
+      "options": [
+        "It stores the schema information for data flowing through connectors",
+        "It stores connector and task configurations for fault tolerance and recovery",
+        "It stores metrics and monitoring data for the Connect cluster",
+        "It stores the heartbeat information from workers for failure detection"
+      ],
+      "answer": "It stores connector and task configurations for fault tolerance and recovery",
+      "explanation": "In Kafka Connect's distributed mode, the config.storage.topic configuration specifies the name of the Kafka topic that stores connector and task configurations. This topic is crucial for fault tolerance and recovery because it allows the Connect cluster to restore connector configurations after worker failures or during cluster scaling. When a worker restarts or a new worker joins the cluster, it reads this topic to learn about existing connectors and their configurations. The topic should have a single partition and be highly replicated to ensure durability and availability of configuration data."
+    },
+    {
+      "id": 5,
+      "question": "What is the purpose of Single Message Transforms (SMTs) in Kafka Connect?",
+      "options": [
+        "To convert data between different serialization formats like Avro and JSON",
+        "To modify individual messages as they flow through connectors without custom code",
+        "To combine multiple messages into a single message before writing to the destination",
+        "To split a single message into multiple messages for parallel processing"
+      ],
+      "answer": "To modify individual messages as they flow through connectors without custom code",
+      "explanation": "Single Message Transforms (SMTs) in Kafka Connect provide a way to modify individual messages as they flow through connectors without writing custom connector code. SMTs perform lightweight, record-by-record transformations such as field renaming, filtering, routing, or value manipulation. They can be chained together to create more complex transformations. SMTs are configured declaratively in connector configurations, making them a powerful and flexible way to adapt data between systems without developing custom code. This simplifies connector deployment and maintenance while still allowing for data customization to meet specific requirements."
+    },
+    {
+      "id": 6,
+      "question": "A JDBC Sink Connector is writing to a relational database. What determines the behavior of the connector when it encounters a record with a key that already exists in the database?",
+      "options": [
+        "The connector.class setting",
+        "The insert.mode configuration",
+        "The auto.evolve setting",
+        "The pk.mode configuration"
+      ],
+      "answer": "The insert.mode configuration",
+      "explanation": "For a JDBC Sink Connector, the insert.mode configuration determines how the connector handles records with keys that already exist in the database. This setting typically offers options like 'insert' (which will fail on duplicate keys), 'upsert' (which will update existing records or insert new ones), and 'update' (which will only update existing records). The insert.mode is critical for defining the semantics of how Kafka data maps to database operations. The connector.class specifies which connector implementation to use, auto.evolve controls schema evolution behavior, and pk.mode determines how primary keys are handled, but none of these directly control the behavior for existing records."
+    },
+    {
+      "id": 7,
+      "question": "In Kafka Connect, what is the difference between standalone mode and distributed mode?",
+      "options": [
+        "Standalone mode is for development only, while distributed mode is for production",
+        "Standalone mode runs on a single machine, while distributed mode runs across multiple machines",
+        "Standalone mode uses local files for configuration and offset storage, while distributed mode uses Kafka topics",
+        "Standalone mode doesn't support fault tolerance, while distributed mode provides automatic failover"
+      ],
+      "answer": "Standalone mode uses local files for configuration and offset storage, while distributed mode uses Kafka topics",
+      "explanation": "The key difference between standalone and distributed modes in Kafka Connect is how configuration and state (including offsets) are managed. Standalone mode uses local files for connector configurations and offset storage, while distributed mode uses Kafka topics (config.storage.topic, offset.storage.topic, and status.storage.topic). This difference in storage mechanism leads to other characteristics: distributed mode provides better fault tolerance and easier scaling, while standalone mode is simpler to set up for development or single-worker scenarios. Both modes can run on single or multiple machines, and both can be used in production depending on requirements for fault tolerance and scalability."
+    },
+    {
+      "id": 8,
+      "question": "A Kafka Connect source connector is reading data from an external system. How are offsets managed to track progress and ensure exactly-once semantics?",
+      "options": [
+        "Offsets are automatically tracked in the __consumer_offsets topic",
+        "The connector must implement custom offset tracking logic",
+        "Offsets are stored in the offset.storage.file or offset.storage.topic based on mode",
+        "Kafka Connect does not support exactly-once semantics for source connectors"
+      ],
+      "answer": "Offsets are stored in the offset.storage.file or offset.storage.topic based on mode",
+      "explanation": "In Kafka Connect, source connector offsets are stored either in a local file (offset.storage.file in standalone mode) or in a Kafka topic (offset.storage.topic in distributed mode). These offsets track the connector's progress in reading from the external system, not to be confused with consumer offsets in the __consumer_offsets topic. The Connect framework handles offset storage and retrieval automatically, so connectors don't need to implement custom offset tracking logic. When implemented properly, source connectors can achieve exactly-once semantics by using the framework's offset management capabilities in conjunction with their own checkpointing logic for the external system."
+    },
+    {
+      "id": 9,
+      "question": "When implementing a custom Kafka Connect source connector, which method is responsible for fetching data from the external system?",
+      "options": [
+        "get() in the Connector class",
+        "poll() in the SourceTask class",
+        "put() in the SourceTask class",
+        "fetch() in the Connector class"
+      ],
+      "answer": "poll() in the SourceTask class",
+      "explanation": "When implementing a custom Kafka Connect source connector, the poll() method in the SourceTask class is responsible for fetching data from the external system. This method is called repeatedly by the Connect framework to retrieve new records from the source system. It should return a List of SourceRecord objects representing the data fetched from the external system. The poll() method must be non-blocking and should respect the requested timeout. It's also responsible for tracking offsets by including source partition and source offset information in each SourceRecord. The Connector class manages tasks and configurations but doesn't directly fetch data."
+    },
+    {
+      "id": 10,
+      "question": "What is the purpose of the Dead Letter Queue (DLQ) feature in Kafka Connect sink connectors?",
+      "options": [
+        "To store messages that have expired due to topic retention policies",
+        "To queue messages that were successfully processed but not yet acknowledged",
+        "To buffer messages during connector restart or rebalancing events",
+        "To capture records that couldn't be processed due to errors, preventing pipeline failures"
+      ],
+      "answer": "To capture records that couldn't be processed due to errors, preventing pipeline failures",
+      "explanation": "The Dead Letter Queue (DLQ) feature in Kafka Connect sink connectors provides a way to handle records that couldn't be processed successfully due to errors, such as schema incompatibilities, transformation failures, or connector-specific issues. Instead of failing the entire connector when problematic records are encountered, these records can be sent to a designated Kafka topic (the DLQ) along with error information. This prevents the entire pipeline from failing due to a few problematic records, allowing the connector to continue processing valid records while providing a mechanism to inspect and potentially fix the problematic ones."
+    }
+  ]
+}

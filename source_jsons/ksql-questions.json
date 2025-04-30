@@ -1,0 +1,125 @@
+{
+  "domain": "KSQL",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which type of ksqlDB query continuously processes data and outputs results to a new stream or table?",
+      "options": [
+        "Pull query",
+        "Push query",
+        "Persistent query",
+        "Streaming query"
+      ],
+      "answer": "Persistent query",
+      "explanation": "A persistent query in ksqlDB is a continuous query that processes data from input streams or tables and outputs results to a new stream or table. These queries are registered with CREATE STREAM AS SELECT or CREATE TABLE AS SELECT statements, and they continue running until explicitly terminated. Persistent queries transform data continuously as new records arrive in the input streams or tables. They are different from push queries (which stream results to clients but don't create new streams or tables) and pull queries (which retrieve data from materialized views at a point in time)."
+    },
+    {
+      "id": 2,
+      "question": "What is the fundamental difference between a STREAM and a TABLE in ksqlDB?",
+      "options": [
+        "STREAM represents an immutable append-only log of events, while TABLE represents the changing state of the world",
+        "STREAM uses log compaction, while TABLE uses log deletion for retention",
+        "STREAM can only append data, while TABLE supports updates and deletes",
+        "STREAM is backed by Kafka topics, while TABLE is stored in external databases"
+      ],
+      "answer": "STREAM represents an immutable append-only log of events, while TABLE represents the changing state of the world",
+      "explanation": "The fundamental difference between STREAM and TABLE in ksqlDB is their conceptual model. A STREAM represents an immutable, append-only log of events where each record is treated as an independent insertion, regardless of its key. A TABLE, on the other hand, represents the changing state of the world, where each record with the same key is interpreted as an update to the previous value (upsert semantics). This difference affects how aggregations work: in a STREAM, all records are counted; in a TABLE, only the latest value per key contributes to aggregations. Both STREAMs and TABLEs are backed by Kafka topics; neither uses external databases for storage."
+    },
+    {
+      "id": 3,
+      "question": "Which windowing type in ksqlDB would be most appropriate for analyzing user browsing sessions where there might be gaps in activity?",
+      "options": [
+        "TUMBLING window",
+        "HOPPING window",
+        "SESSION window",
+        "SLIDING window"
+      ],
+      "answer": "SESSION window",
+      "explanation": "SESSION windows in ksqlDB are most appropriate for analyzing user browsing sessions where there might be gaps in activity. SESSION windows group records with the same key that occur within a specified inactivity gap of each other. A session begins when a record with a key is received and continues until no records with the same key are received for the specified inactivity gap duration. This makes SESSION windows ideal for analyzing user behavior where there may be periods of activity followed by inactivity, such as website visits or application usage sessions. TUMBLING and HOPPING windows are time-based with fixed sizes, which doesn't fit the variable-length nature of user sessions."
+    },
+    {
+      "id": 4,
+      "question": "What is the primary limitation of ksqlDB pull queries compared to push queries?",
+      "options": [
+        "Pull queries can only be executed on TABLE sources, not STREAM sources",
+        "Pull queries are limited to querying the latest state in materialized views",
+        "Pull queries do not support joining multiple streams or tables",
+        "Pull queries cannot filter results using WHERE clauses"
+      ],
+      "answer": "Pull queries are limited to querying the latest state in materialized views",
+      "explanation": "The primary limitation of ksqlDB pull queries is that they can only query the latest state in materialized views, which are created by persistent queries that use GROUP BY or other aggregation operations. Pull queries return a point-in-time snapshot of the current state and cannot access historical data or process data streams like push queries can. They're designed for applications that need to look up the current value for a specific key, similar to key-value store lookups. This limitation makes pull queries unsuitable for complex event processing or time-based analysis, which are better handled by push or persistent queries."
+    },
+    {
+      "id": 5,
+      "question": "In ksqlDB, what does the WITH(VALUE_FORMAT='AVRO') clause in a CREATE STREAM statement indicate?",
+      "options": [
+        "The source Kafka topic contains Avro-formatted data",
+        "The schema for the stream must be registered in Schema Registry",
+        "The output records will be serialized in Avro format",
+        "The AVRO format will be used for internal processing only"
+      ],
+      "answer": "The output records will be serialized in Avro format",
+      "explanation": "In a CREATE STREAM statement, the WITH(VALUE_FORMAT='AVRO') clause indicates that the data in the stream will be serialized in Avro format when published to the underlying Kafka topic. This setting also implies integration with the Schema Registry, which will be used to store and retrieve the Avro schema for the stream. For CREATE STREAM AS SELECT statements, this specifies the format for the output topic. For regular CREATE STREAM statements, this indicates the expected format of the source topic data. Using Avro provides benefits like schema evolution capabilities and compact serialization compared to formats like JSON or DELIMITED."
+    },
+    {
+      "id": 6,
+      "question": "Analyze the following ksqlDB statement:\n\nCREATE TABLE daily_user_counts AS\n  SELECT userId,\n         COUNT(*) AS event_count\n  FROM user_events\n  WINDOW TUMBLING (SIZE 24 HOURS)\n  GROUP BY userId;\n\nWhat will this statement produce?",
+      "options": [
+        "A stream of user IDs with the total count of events per user, updated continuously",
+        "A table showing the count of user events per user ID for the most recent 24-hour period only",
+        "A table with a windowed key containing user ID and window bounds, with event counts for each 24-hour window",
+        "A continuously updating count of all users who have had events in the past 24 hours"
+      ],
+      "answer": "A table with a windowed key containing user ID and window bounds, with event counts for each 24-hour window",
+      "explanation": "This ksqlDB statement creates a windowed aggregate table that counts events by userId in 24-hour tumbling windows. The result is a TABLE where the key consists of both the userId and window boundaries (start and end time), and the value contains the event_count for each window. As new user_events records arrive, they're assigned to the appropriate 24-hour window based on their timestamp, and the count for that userId and window is updated. The table will contain entries for all historical windows since the query started, not just the most recent 24-hour period. This is useful for analyzing user activity patterns across different time windows."
+    },
+    {
+      "id": 7,
+      "question": "What would be the effect of adding EMIT CHANGES to the end of a ksqlDB SELECT statement?",
+      "options": [
+        "It would create a new stream or table with the query results",
+        "It would convert a pull query into a push query, streaming results as they change",
+        "It would ensure that only changed records are included in the result set",
+        "It would emit the full result set whenever any value changes"
+      ],
+      "answer": "It would convert a pull query into a push query, streaming results as they change",
+      "explanation": "Adding EMIT CHANGES to the end of a ksqlDB SELECT statement converts it into a push query. Unlike a pull query that returns a single result set and terminates, a push query with EMIT CHANGES continues running and streams results to the client as they're computed. The query keeps pushing new results whenever the underlying data changes. This is useful for real-time dashboards, monitoring applications, or any scenario where you need to see results update live as new data is processed. Push queries continue running until explicitly terminated by the client."
+    },
+    {
+      "id": 8,
+      "question": "In ksqlDB, what happens when you execute a CREATE STREAM statement where the source Kafka topic doesn't exist yet?",
+      "options": [
+        "The statement fails with an error indicating that the topic doesn't exist",
+        "The statement succeeds, and the topic will be created automatically when data is produced",
+        "ksqlDB creates the topic automatically with default configuration",
+        "The statement creates a stream definition but marks it as inactive until the topic exists"
+      ],
+      "answer": "ksqlDB creates the topic automatically with default configuration",
+      "explanation": "When executing a CREATE STREAM statement in ksqlDB where the source Kafka topic doesn't exist yet, ksqlDB will automatically create the topic with default configuration. This auto-creation behavior can be controlled with the ksql.streams.auto.create.topics.enable property. The created topic will use the number of partitions specified by the server's default.num.partitions setting and the replication factor specified by default.replication.factor. For production environments, it's generally better to create topics explicitly with appropriate settings before creating streams or tables that reference them."
+    },
+    {
+      "id": 9,
+      "question": "What is the maximum parallelism that can be achieved when scaling out a ksqlDB cluster for a query that reads from a topic with 8 partitions?",
+      "options": [
+        "Equal to the number of ksqlDB server instances in the cluster",
+        "8 parallel processing units, limited by the number of topic partitions",
+        "Limited only by the processing capacity of the Kafka cluster",
+        "Limited by the lowest partition count among all input topics"
+      ],
+      "answer": "8 parallel processing units, limited by the number of topic partitions",
+      "explanation": "The maximum parallelism that can be achieved when scaling out a ksqlDB cluster is equal to the number of partitions in the input topic(s), which is 8 in this case. Each partition can only be processed by one ksqlDB server instance at a time, so adding more server instances beyond the number of partitions won't increase processing parallelism. This is because ksqlDB, built on Kafka Streams, assigns each partition to exactly one task, and each task runs on exactly one server instance. To increase parallelism beyond this limit, you would need to increase the partition count of the source topics."
+    },
+    {
+      "id": 10,
+      "question": "What is the correct syntax for creating a ksqlDB table that maintains a running sum of order values by customer ID?",
+      "options": [
+        "CREATE TABLE customer_totals AS SELECT customerId, SUM(orderValue) FROM orders GROUP BY customerId;",
+        "CREATE TABLE customer_totals AS SELECT customerId, RUNNING_SUM(orderValue) FROM orders GROUP BY customerId;",
+        "CREATE TABLE customer_totals AS SELECT customerId, SUM(orderValue) AS total FROM orders GROUP BY customerId EMIT CHANGES;",
+        "CREATE STREAM customer_totals AS SELECT customerId, SUM(orderValue) FROM orders GROUP BY customerId;"
+      ],
+      "answer": "CREATE TABLE customer_totals AS SELECT customerId, SUM(orderValue) AS total FROM orders GROUP BY customerId EMIT CHANGES;",
+      "explanation": "The correct syntax for creating a ksqlDB table with a running sum is: CREATE TABLE customer_totals AS SELECT customerId, SUM(orderValue) AS total FROM orders GROUP BY customerId EMIT CHANGES; This creates a table that groups orders by customerId and maintains a running sum of orderValue for each customer. The EMIT CHANGES clause is necessary to make this a continuous query that updates as new data arrives. Note that aliasing the SUM as 'total' is good practice for clarity, and using a TABLE (not STREAM) is appropriate because we're maintaining an aggregate state that updates over time, not an append-only log of events."
+    }
+  ]
+}

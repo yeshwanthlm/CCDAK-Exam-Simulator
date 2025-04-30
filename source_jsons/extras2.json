@@ -1,0 +1,1372 @@
+{
+    "questions": [
+
+        {
+            "id": 81,
+            "category": "Schema Registry",
+            "question": "A team is migrating from JSON to Avro for their Kafka messages. Which compatibility type should they set to ensure old consumers using Avro schemas can read data produced with newer Avro schemas?",
+            "options": [
+              "BACKWARD",
+              "FORWARD",
+              "FULL",
+              "NONE"
+            ],
+            "answer": "FORWARD",
+            "explanation": "FORWARD compatibility ensures old consumers (using older schemas) can read data produced with newer schemas. This is critical when consumers might not be updated as quickly as producers during a migration. BACKWARD compatibility is the opposite - it ensures new consumers can read old data."
+          },
+          {
+            "id": 82,
+            "category": "Broker Configuration",
+            "question": "What is the impact of setting unclean.leader.election.enable=true in a Kafka broker?",
+            "options": [
+              "It improves data consistency by preventing out-of-sync replicas from becoming leaders",
+              "It prioritizes availability by allowing out-of-sync replicas to become leaders",
+              "It increases performance by allowing multiple leaders for the same partition",
+              "It enables the Controller to act as a leader for any partition"
+            ],
+            "answer": "It prioritizes availability by allowing out-of-sync replicas to become leaders",
+            "explanation": "Setting unclean.leader.election.enable=true prioritizes availability over consistency. It allows replicas that aren't in the ISR (in-sync replicas) set to become leaders when all current ISR members are unavailable. This can prevent downtime but may cause data loss since out-of-sync replicas might not have all committed data."
+          },
+          {
+            "id": 83,
+            "category": "Producer",
+            "question": "A producer is sending messages with keys to a topic with 3 partitions. After increasing the topic to 6 partitions, what happens to the key-to-partition mapping?",
+            "options": [
+              "Keys will be distributed to the same partitions as before",
+              "All keys will be remapped to potentially different partitions",
+              "Only new keys will go to the new partitions; existing keys maintain their original mapping",
+              "Keys will be evenly redistributed across all 6 partitions regardless of previous mapping"
+            ],
+            "answer": "All keys will be remapped to potentially different partitions",
+            "explanation": "When partition count changes, the key-to-partition mapping formula (hash(key) % numPartitions) changes. This means all keys will be remapped to potentially different partitions, breaking the key-partition relationship that existed with 3 partitions. This can disrupt applications that rely on key-based ordering or co-partitioning."
+          },
+          {
+            "id": 84,
+            "category": "Consumer",
+            "question": "What is the consequence of setting max.poll.interval.ms too low for a consumer with long record processing times?",
+            "options": [
+              "Records will be processed multiple times",
+              "Consumer group rebalances will occur frequently",
+              "Records will be skipped if processing takes too long",
+              "The consumer will automatically increase the value as needed"
+            ],
+            "answer": "Consumer group rebalances will occur frequently",
+            "explanation": "If max.poll.interval.ms is set too low for a consumer with long processing times, the consumer may fail to call poll() within the specified interval. This causes the broker to consider the consumer failed and trigger a rebalance, reassigning its partitions. Frequent rebalances disrupt processing and impact overall throughput."
+          },
+          {
+            "id": 85,
+            "category": "Kafka Streams",
+            "question": "In a Kafka Streams application, which state store type provides the best read performance but doesn't survive application restarts?",
+            "options": [
+              "Persistent RocksDB store with caching",
+              "In-memory state store",
+              "Versioned key-value store",
+              "TimestampedKeyValueStore"
+            ],
+            "answer": "In-memory state store",
+            "explanation": "In-memory state stores provide the best read performance since they avoid disk I/O, but they don't survive application restarts because data is not persisted. When the application restarts, the state store must be rebuilt from scratch. This contrasts with persistent stores like RocksDB that maintain data on disk and in changelog topics."
+          },
+          {
+            "id": 86,
+            "category": "KSQL",
+            "question": "Which KSQL statement would create a continuously updated table of page view counts per user?",
+            "options": [
+              "CREATE TABLE user_counts AS SELECT userId, COUNT(*) FROM pageviews GROUP BY userId;",
+              "CREATE STREAM user_counts AS SELECT userId, COUNT(*) FROM pageviews GROUP BY userId;",
+              "CREATE TABLE user_counts AS SELECT userId, COUNT(*) FROM pageviews GROUP BY userId EMIT CHANGES;",
+              "CREATE STREAM user_counts AS SELECT userId, COUNT(*) FROM pageviews GROUP BY userId EMIT CHANGES;"
+            ],
+            "answer": "CREATE TABLE user_counts AS SELECT userId, COUNT(*) FROM pageviews GROUP BY userId EMIT CHANGES;",
+            "explanation": "The correct statement is CREATE TABLE with EMIT CHANGES. A TABLE represents an aggregated, continuously updated view (counts per userId), while STREAM would represent each change as a separate event. GROUP BY requires a TABLE for the result, and EMIT CHANGES makes it a continuous query that updates as new data arrives."
+          },
+          {
+            "id": 87,
+            "category": "Kafka Connect",
+            "question": "What determines the maximum possible parallelism for a Kafka Connect sink connector?",
+            "options": [
+              "The number of available Kafka Connect workers",
+              "The connector's tasks.max configuration",
+              "The number of partitions in the source topic",
+              "The CPU cores available on the worker machines"
+            ],
+            "answer": "The number of partitions in the source topic",
+            "explanation": "The maximum parallelism for a sink connector is limited by the number of partitions in the source topic. Each task processes one or more partitions, and a partition cannot be split across multiple tasks. Even if tasks.max is set higher, the connector cannot use more tasks than available partitions."
+          },
+          {
+            "id": 88,
+            "category": "Kafka CLI",
+            "question": "Which command correctly alters the min.insync.replicas setting for an existing topic?",
+            "options": [
+              "kafka-topics.sh --alter --bootstrap-server localhost:9092 --topic my-topic --min-insync-replicas 2",
+              "kafka-configs.sh --alter --bootstrap-server localhost:9092 --entity-type topics --entity-name my-topic --add-config min.insync.replicas=2",
+              "kafka-topics.sh --update --bootstrap-server localhost:9092 --topic my-topic --config min.insync.replicas=2",
+              "kafka-admin.sh --alter-topic --bootstrap-server localhost:9092 --topic my-topic --min.insync.replicas 2"
+            ],
+            "answer": "kafka-configs.sh --alter --bootstrap-server localhost:9092 --entity-type topics --entity-name my-topic --add-config min.insync.replicas=2",
+            "explanation": "Use kafka-configs.sh to alter configuration for existing topics. The --alter flag indicates a configuration change, --entity-type specifies we're modifying a topic, --entity-name provides the topic name, and --add-config sets the min.insync.replicas parameter to 2. kafka-topics.sh can alter some properties but topic configs are managed through kafka-configs.sh."
+          },
+          {
+            "id": 89,
+            "category": "Security",
+            "question": "Which authentication mechanism in Kafka provides integration with enterprise identity management systems via Kerberos?",
+            "options": [
+              "SASL/PLAIN",
+              "SASL/SCRAM",
+              "SASL/GSSAPI",
+              "SSL client certificates"
+            ],
+            "answer": "SASL/GSSAPI",
+            "explanation": "SASL/GSSAPI (Generic Security Services API) is the authentication mechanism that integrates with Kerberos, commonly used in enterprise identity management systems. This allows Kafka to leverage existing Kerberos infrastructure for authenticating clients without maintaining separate credentials within Kafka."
+          },
+          {
+            "id": 90,
+            "category": "Monitoring",
+            "question": "Which metric should you monitor to detect if partition leadership is evenly distributed across brokers in a Kafka cluster?",
+            "options": [
+              "UnderReplicatedPartitions",
+              "ActiveControllerCount",
+              "LeaderCount",
+              "OfflinePartitionsCount"
+            ],
+            "answer": "LeaderCount",
+            "explanation": "LeaderCount shows the number of partitions for which a broker is the leader. By comparing this metric across brokers, you can identify imbalances where some brokers have significantly more leader partitions than others, which can lead to uneven load distribution. Significant differences may indicate the need for a leader rebalance."
+          },
+          {
+            "id": 91,
+            "category": "Kafka Streams",
+            "question": "What happens when a KTable-KTable join is performed in Kafka Streams?",
+            "options": [
+              "A new KStream is produced containing all combinations of records with matching keys",
+              "A new KTable is produced containing the joined result for each key that exists in both tables",
+              "A windowed join result is created that groups records within the same time window",
+              "The result depends on which table has more partitions"
+            ],
+            "answer": "A new KTable is produced containing the joined result for each key that exists in both tables",
+            "explanation": "A KTable-KTable join produces a new KTable with joined results for each key present in both input tables. The join result for a key is updated whenever either input table receives an update for that key. This join only includes keys that exist in both tables, similar to an INNER JOIN in SQL."
+          },
+          {
+            "id": 92,
+            "category": "Producer",
+            "question": "What is the effect of setting enable.idempotence=true on a Kafka producer?",
+            "options": [
+              "It requires the broker to acknowledge all messages",
+              "It reduces the chance of message loss at the expense of performance",
+              "It prevents duplicate messages caused by producer retries",
+              "It guarantees message ordering across partitions"
+            ],
+            "answer": "It prevents duplicate messages caused by producer retries",
+            "explanation": "Setting enable.idempotence=true prevents duplicate messages caused by producer retries. The producer includes a Producer ID and sequence number with each message, allowing the broker to detect and reject duplicates. This provides exactly-once delivery semantics to the broker, ensuring each message is delivered exactly once even when retries occur."
+          },
+          {
+            "id": 93,
+            "category": "Topics",
+            "question": "What happens if a producer sends a message that exceeds the maximum allowed size for a topic?",
+            "options": [
+              "The producer receives a RecordTooLargeException",
+              "The broker truncates the message to fit the maximum size",
+              "The message is split into smaller fragments automatically",
+              "The message is sent to a special oversized-messages topic"
+            ],
+            "answer": "The producer receives a RecordTooLargeException",
+            "explanation": "When a message exceeds the maximum allowed size (configured by message.max.bytes on the broker or max.message.bytes on the topic), the broker rejects it and the producer receives a RecordTooLargeException. The message is not truncated or automatically split - it's simply rejected. Producers must handle this exception and either reduce the message size or split it manually."
+          },
+          {
+            "id": 94,
+            "category": "Consumer",
+            "question": "What is the purpose of Kafka's CooperativeStickyAssignor?",
+            "options": [
+              "To assign the exact same partitions to consumers as they had previously",
+              "To minimize partition movement during rebalances while avoiding stop-the-world pauses",
+              "To distribute partitions based on consumer resource capacity",
+              "To assign partitions based on geographic proximity to brokers"
+            ],
+            "answer": "To minimize partition movement during rebalances while avoiding stop-the-world pauses",
+            "explanation": "The CooperativeStickyAssignor has two key benefits: 1) it minimizes partition movement during rebalances like the StickyAssignor, and 2) it implements incremental rebalancing, where only affected partitions are reassigned while others continue processing. This avoids the 'stop-the-world' pauses of eager rebalancing strategies, where all consumers pause processing during rebalances."
+          },
+          {
+            "id": 95,
+            "category": "Schema Registry",
+            "question": "When using Avro with Schema Registry, what happens if a producer tries to send a message with a schema that's incompatible with the existing schema for that topic?",
+            "options": [
+              "The message is sent with a special flag indicating a schema mismatch",
+              "The producer receives a SchemaIncompatibleException and the message is not sent",
+              "The message is sent with the previous compatible schema version",
+              "The message is converted to the existing schema format automatically"
+            ],
+            "answer": "The producer receives a SchemaIncompatibleException and the message is not sent",
+            "explanation": "When a producer tries to register an incompatible schema, the Schema Registry checks it against the compatibility rules (e.g., BACKWARD, FORWARD) and rejects it if incompatible. The producer receives a SerializationException (specifically SchemaIncompatibleException) before any data is sent to Kafka, preventing incompatible data from entering the system."
+          },
+          {
+            "id": 96,
+            "category": "KSQL",
+            "question": "Which is NOT a valid data type in ksqlDB?",
+            "options": [
+              "ARRAY",
+              "MAP",
+              "CHAR",
+              "STRUCT"
+            ],
+            "answer": "CHAR",
+            "explanation": "CHAR is not a valid data type in ksqlDB. ksqlDB supports VARCHAR for string-type data, but not CHAR (fixed-length strings). The other options (ARRAY, MAP, STRUCT) are all valid complex data types in ksqlDB that can be used to represent collections, key-value pairs, and nested structures respectively."
+          },
+          {
+            "id": 97,
+            "category": "Broker Configuration",
+            "question": "What is the significance of the replica.lag.time.max.ms configuration in Kafka?",
+            "options": [
+              "It controls how long a broker will wait for replicas to catch up during shutdown",
+              "It determines how often replicas fetch updates from the leader",
+              "It specifies how far behind a replica can fall before being removed from the ISR",
+              "It sets the maximum time a leader will wait for acknowledgment from followers"
+            ],
+            "answer": "It specifies how far behind a replica can fall before being removed from the ISR",
+            "explanation": "replica.lag.time.max.ms specifies the maximum time a follower can go without fetching from the leader before it's removed from the ISR (In-Sync Replicas). If a replica doesn't request new data within this time, it's considered out-of-sync. This indirectly affects producer acknowledgments when acks=all, as only ISR members must acknowledge for success."
+          },
+          {
+            "id": 98,
+            "category": "KRaft",
+            "question": "In KRaft (Kafka Raft) mode, what is the minimum recommended number of controller nodes for a production environment?",
+            "options": [
+              "1",
+              "2",
+              "3",
+              "5"
+            ],
+            "answer": "3",
+            "explanation": "The minimum recommended number of controller nodes for a production KRaft-based Kafka cluster is 3. This allows the cluster to tolerate the failure of 1 controller node while still maintaining a majority quorum (2 out of 3) for metadata operations. Having only 1 or 2 controller nodes would not provide sufficient fault tolerance for production use."
+          },
+          {
+            "id": 99,
+            "category": "Kafka Connect",
+            "question": "What feature in Kafka Connect helps handle problematic records without failing the entire connector?",
+            "options": [
+              "Exactly-once delivery",
+              "Schema validation",
+              "Dead Letter Queue",
+              "Circuit breaker pattern"
+            ],
+            "answer": "Dead Letter Queue",
+            "explanation": "The Dead Letter Queue (DLQ) feature handles problematic records without failing the entire connector. When errors occur during processing (e.g., schema incompatibilities or transformation failures), these records can be sent to a designated Kafka topic (the DLQ) with error information. This allows the connector to continue processing valid records while providing a mechanism to inspect and potentially fix problematic ones."
+          },
+          {
+            "id": 100,
+            "category": "Security",
+            "question": "When migrating a Kafka cluster to use SSL encryption, what is the recommended approach?",
+            "options": [
+              "Switch all traffic to SSL at once by reconfiguring all brokers simultaneously",
+              "Start with encrypting client-broker traffic, then inter-broker traffic, and finally close the PLAINTEXT port",
+              "Create a new SSL-enabled cluster and migrate data from the old cluster",
+              "Enable SSL on a per-topic basis, starting with the most sensitive topics"
+            ],
+            "answer": "Start with encrypting client-broker traffic, then inter-broker traffic, and finally close the PLAINTEXT port",
+            "explanation": "The recommended approach for migrating to SSL is phased: first enable SSL listeners alongside existing PLAINTEXT listeners and migrate clients, then configure inter-broker communication to use SSL, and finally close the PLAINTEXT port. This gradual approach minimizes disruption and provides a fallback path if issues arise during migration."
+          },
+          {
+            "id": 101,
+            "category": "Monitoring",
+            "question": "What metric would most effectively help detect consumer lag issues in a Kafka cluster?",
+            "options": [
+              "MessagesInPerSec",
+              "BytesOutPerSec",
+              "RequestQueueTimeMs",
+              "records-lag-max"
+            ],
+            "answer": "records-lag-max",
+            "explanation": "records-lag-max directly measures the maximum lag (in number of messages) between the consumer's current position and the end of the log for any partition. This metric clearly indicates when consumers are falling behind producers, making it the most effective for detecting consumer lag issues. The other metrics may provide general performance insights but don't directly measure consumer lag."
+          },
+          {
+            "id": 102,
+            "category": "CLI",
+            "question": "Which command is used to reset consumer group offsets in Kafka?",
+            "options": [
+              "kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group mygroup --reset-offsets --to-earliest --execute --topic mytopic",
+              "kafka-topics.sh --bootstrap-server localhost:9092 --alter --group mygroup --reset-offsets --topic mytopic",
+              "kafka-console-consumer.sh --bootstrap-server localhost:9092 --group mygroup --from-beginning --reset",
+              "kafka-configs.sh --bootstrap-server localhost:9092 --entity-type groups --entity-name mygroup --alter --add-config offset.reset=earliest"
+            ],
+            "answer": "kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group mygroup --reset-offsets --to-earliest --execute --topic mytopic",
+            "explanation": "The kafka-consumer-groups.sh tool with the --reset-offsets flag is used to reset consumer group offsets. The --to-earliest option resets to the earliest offset, --execute commits the changes (without it, the command runs in dry-run mode), and --topic specifies which topic's offsets to reset. This command is essential for consumer troubleshooting and reprocessing scenarios."
+          },
+          {
+            "id": 103,
+            "category": "Serialization",
+            "question": "What is the advantage of using the SpecificRecord interface with Avro in Kafka instead of GenericRecord?",
+            "options": [
+              "It provides better compression ratios for Avro data",
+              "It allows schema-less serialization for flexibility",
+              "It generates Java classes with type-safe fields based on the schema",
+              "It eliminates the need for Schema Registry integration"
+            ],
+            "answer": "It generates Java classes with type-safe fields based on the schema",
+            "explanation": "SpecificRecord generates Java classes with type-safe fields based on the Avro schema, providing compile-time type checking and more intuitive data access (e.g., customer.getName() instead of customer.get(\"name\")). This reduces runtime errors and improves code readability compared to GenericRecord's map-like interface. Both approaches still require Schema Registry integration for schema management."
+          },
+          {
+            "id": 104,
+            "category": "ZooKeeper",
+            "question": "In a 5-node ZooKeeper ensemble, what is the maximum number of nodes that can fail while still maintaining quorum?",
+            "options": [
+              "1 node",
+              "2 nodes",
+              "3 nodes",
+              "4 nodes"
+            ],
+            "answer": "2 nodes",
+            "explanation": "In ZooKeeper, a quorum requires a majority of nodes (more than half) to be operational. With 5 nodes, a majority is 3 nodes (5/2 + 1 = 3). Therefore, the ensemble can tolerate up to 2 node failures while still maintaining a 3-node quorum. If 3 or more nodes fail, the ensemble would have fewer than 3 nodes available and couldn't form a quorum."
+          },
+          {
+            "id": 105,
+            "category": "Log Compaction",
+            "question": "What is the purpose of a tombstone message in a compacted Kafka topic?",
+            "options": [
+              "To mark a topic as ready for deletion",
+              "To indicate that a key should be deleted from the topic",
+              "To represent a missing value in stream processing",
+              "To signal the end of a transaction"
+            ],
+            "answer": "To indicate that a key should be deleted from the topic",
+            "explanation": "In a compacted topic, a tombstone (a message with a key but null value) indicates that a key should be deleted. When the log cleaner processes a segment with a tombstone, it removes all previous messages with that key. After the delete.retention.ms period, the tombstone itself is removed. This mechanism enables explicit deletion of keys from compacted topics, which is useful for event sourcing patterns."
+          }
+        ,{
+            "id": 71,
+            "category": "Kafka Connect",
+            "question": "What is the difference between a source connector and a sink connector in Kafka Connect?",
+            "options": [
+              "Source connectors read from Kafka topics, sink connectors write to Kafka topics",
+              "Source connectors import data from external systems into Kafka, sink connectors export data from Kafka to external systems",
+              "Source connectors are for batch processing, sink connectors are for real-time processing",
+              "Source connectors handle structured data, sink connectors handle unstructured data"
+            ],
+            "answer": "Source connectors import data from external systems into Kafka, sink connectors export data from Kafka to external systems",
+            "explanation": "Source connectors import data from external systems (like databases, file systems, or APIs) into Kafka topics. Sink connectors export data from Kafka topics to external systems. The directionality is defined relative to Kafka: source brings data in, sink pushes data out. This fundamental distinction determines connector functionality, configuration, and implementation details."
+          },
+          {
+            "id": 72,
+            "category": "Kafka Connect",
+            "question": "How does Kafka Connect track progress for a source connector that's reading from a database?",
+            "options": [
+              "It uses the kafka consumer group offset mechanism",
+              "It maintains a dedicated offset topic to store source offset information",
+              "It relies on the database's own transaction log",
+              "It requires manual offset tracking in the connector implementation"
+            ],
+            "answer": "It maintains a dedicated offset topic to store source offset information",
+            "explanation": "Kafka Connect tracks source connector progress in a dedicated offset topic (e.g., connect-offsets). For database sources, this typically stores information like table names, primary key values, or timestamp values representing the last ingested row. This automatic offset management is a key feature of Connect, enabling fault tolerance and exactly-once semantics without requiring connector developers to implement their own tracking mechanisms."
+          },
+          {
+            "id": 73,
+            "category": "Kafka Connect",
+            "question": "In Kafka Connect distributed mode, what happens when a worker fails while running several connector tasks?",
+            "options": [
+              "All tasks for that connector stop until the worker is restarted",
+              "The tasks are redistributed among remaining workers in the Connect cluster",
+              "The tasks continue running on the failed worker with degraded performance",
+              "The tasks restart from the beginning of their respective data sources"
+            ],
+            "answer": "The tasks are redistributed among remaining workers in the Connect cluster",
+            "explanation": "When a worker fails in distributed mode, Kafka Connect automatically redistributes its tasks among the remaining workers. This self-healing capability is enabled by storing configurations and offsets in Kafka topics rather than local storage. Task rebalancing works similarly to consumer group rebalancing - the cluster detects the failure and reassigns work to maintain processing continuity with minimal disruption."
+          },
+          {
+            "id": 74,
+            "category": "Kafka Connect",
+            "question": "What is the purpose of Single Message Transforms (SMTs) in Kafka Connect?",
+            "options": [
+              "To convert messages between different serialization formats",
+              "To modify individual records as they flow through connectors",
+              "To combine multiple small messages into larger batches",
+              "To ensure exactly-once processing semantics"
+            ],
+            "answer": "To modify individual records as they flow through connectors",
+            "explanation": "Single Message Transforms (SMTs) allow modifying individual records as they flow through connectors without writing custom code. SMTs perform lightweight record-by-record transformations like field renaming, filtering, value manipulation, or timestamp conversion. They can be chained together and configured declaratively in connector configurations, enabling data customization without developing custom connectors."
+          },
+          {
+            "id": 75,
+            "category": "Delivery Semantics - Producers",
+            "question": "Which combination of Kafka producer configurations provides at-least-once delivery semantics?",
+            "options": [
+              "acks=0, retries=0",
+              "acks=1, retries=0",
+              "acks=all, retries>0",
+              "enable.idempotence=true, acks=all"
+            ],
+            "answer": "acks=all, retries>0",
+            "explanation": "At-least-once delivery means messages will be delivered, but possibly multiple times if failures occur. Setting acks=all ensures the producer waits for all replicas to acknowledge writes before considering them successful, while retries>0 makes the producer retry failed sends. This combination can cause duplicates on retries (without idempotence) but ensures messages aren't lost, meeting the 'at least once' guarantee. acks=0 would provide at-most-once semantics, while enable.idempotence=true would upgrade to exactly-once semantics."
+          },
+          {
+            "id": 76,
+            "category": "Delivery Semantics - Consumers",
+            "question": "How can a Kafka consumer achieve at-most-once delivery semantics?",
+            "options": [
+              "By setting enable.auto.commit=true and processing records after the auto-commit interval",
+              "By setting enable.auto.commit=false and manually committing offsets before processing records",
+              "By setting isolation.level=read_committed and enable.auto.commit=true",
+              "By using the consumer.commitSync() method after processing each record"
+            ],
+            "answer": "By setting enable.auto.commit=false and manually committing offsets before processing records",
+            "explanation": "At-most-once semantics (process messages at most once) is achieved by committing offsets before processing records. If the consumer crashes after committing but before processing completes, those records won't be reprocessed on restart because the committed offset will be beyond them. This provides protection against duplicate processing at the cost of potential message loss. This pattern requires disabling auto-commit (enable.auto.commit=false) and manually committing offsets before processing."
+          },
+          {
+            "id": 77,
+            "category": "Delivery Semantics - Kafka Streams",
+            "question": "What delivery semantics does Kafka Streams provide when configured with processing.guarantee=exactly_once_v2?",
+            "options": [
+              "At-least-once semantics for all stream operations",
+              "At-most-once semantics with potential data loss on failure",
+              "Exactly-once semantics for all operations within the Kafka cluster",
+              "Exactly-once semantics extending to external systems like databases"
+            ],
+            "answer": "Exactly-once semantics for all operations within the Kafka cluster",
+            "explanation": "With processing.guarantee=exactly_once_v2, Kafka Streams provides exactly-once semantics for all operations within the Kafka cluster, meaning each input record affects the state and output exactly once, even during failures or rebalances. This is achieved through transactional processing that atomically commits input consumption, state updates, and output production. However, this guarantee only extends to the Kafka ecosystem - when writing to external systems, additional mechanisms are needed to maintain exactly-once semantics end-to-end."
+          },
+          {
+            "id": 78,
+            "category": "Delivery Semantics - Kafka Connect",
+            "question": "Which statement correctly describes the delivery guarantees of Kafka Connect sink connectors?",
+            "options": [
+              "Kafka Connect always provides exactly-once delivery for all sink connectors",
+              "Sink connectors provide at-least-once delivery by default, with exactly-once possible for some connector implementations",
+              "Sink connectors only provide at-most-once delivery to prioritize performance",
+              "The delivery semantics depend solely on the source topic's configuration, not the connector"
+            ],
+            "answer": "Sink connectors provide at-least-once delivery by default, with exactly-once possible for some connector implementations",
+            "explanation": "Kafka Connect sink connectors provide at-least-once delivery semantics by default, as they store offsets only after successful writes to the destination system. This means a connector might reprocess and rewrite some data if it fails after writing but before storing the offset. Some specific sink connectors can achieve exactly-once semantics if they use idempotent writes or transactions in the destination system, but this capability depends on both connector implementation and destination system features."
+          },
+          {
+            "id": 79,
+            "category": "Delivery Semantics - End-to-End",
+            "question": "What is required to achieve true end-to-end exactly-once semantics in a Kafka pipeline that includes producers, streams processing, and external sinks?",
+            "options": [
+              "Enable idempotence for producers, Streams, and consumers",
+              "Configure all components with the highest durability settings (acks=all)",
+              "Implement idempotent writes or transactional mechanisms in the external sink systems",
+              "Use the Kafka transactions API across all components"
+            ],
+            "answer": "Implement idempotent writes or transactional mechanisms in the external sink systems",
+            "explanation": "True end-to-end exactly-once semantics requires idempotent writes or transactional mechanisms in external sink systems. While Kafka can provide exactly-once guarantees within its ecosystem (with producer idempotence, transactional APIs, and Streams exactly_once processing), this guarantee breaks when writing to external systems unless they support idempotent operations or transactions. Examples include databases with upsert capabilities, APIs that support idempotency tokens, or systems with conditional writes that prevent duplicates."
+          },
+          {
+            "id": 80,
+            "category": "Kafka Connect",
+            "question": "What is the purpose of Confluent's Schema Registry integration with Kafka Connect?",
+            "options": [
+              "To enforce schema validation only on the connector configuration",
+              "To automatically convert between different data formats like JSON and Avro",
+              "To ensure data produced or consumed by connectors conforms to registered schemas",
+              "To generate connector configurations based on available schemas"
+            ],
+            "answer": "To ensure data produced or consumed by connectors conforms to registered schemas",
+            "explanation": "Schema Registry integration with Kafka Connect ensures data produced or consumed by connectors conforms to registered schemas. For source connectors, this means data is serialized according to registered schemas before writing to Kafka. For sink connectors, it enables proper deserialization of schema-based formats like Avro. This integration provides data consistency, type safety, and evolution capabilities that are particularly valuable in enterprise environments with strict data governance requirements."
+          }
+        ,{
+            "id": 61,
+            "category": "Producer Idempotence",
+            "question": "What is required for a Kafka producer to achieve exactly-once delivery semantics with idempotence?",
+            "options": [
+              "Set enable.idempotence=true, retries=0, and max.in.flight.requests.per.connection=1",
+              "Set enable.idempotence=true, while using a transactional.id is optional",
+              "Set enable.idempotence=true and use a unique transactional.id for each producer instance",
+              "Set enable.idempotence=true, acks=all, and implement a custom deduplication mechanism"
+            ],
+            "answer": "Set enable.idempotence=true and use a unique transactional.id for each producer instance",
+            "explanation": "For exactly-once delivery semantics, a producer needs enable.idempotence=true AND a unique transactional.id. Idempotence alone prevents duplicates from network retries, but for true exactly-once semantics across multiple topic-partition writes, you need the transactional API. The transactional.id enables the broker to distinguish between different producer instances and maintain transaction state across producer restarts."
+          },
+          {
+            "id": 62,
+            "category": "Producer Idempotence",
+            "question": "How does a Kafka broker detect and prevent duplicate messages when idempotence is enabled?",
+            "options": [
+              "It uses a bloom filter to track all message IDs ever sent to the topic",
+              "It tracks the last 5 message checksums for each producer and rejects duplicates",
+              "It maintains sequence numbers for each producer-partition pair and rejects out-of-order duplicates",
+              "It requires the client to perform deduplication before sending"
+            ],
+            "answer": "It maintains sequence numbers for each producer-partition pair and rejects out-of-order duplicates",
+            "explanation": "With idempotence enabled, Kafka brokers track sequence numbers for each producer-partition pair. Each producer is assigned a Producer ID (PID), and includes a sequence number with each message. The broker stores the highest sequence number it has received for each PID-partition combination, rejecting messages with already-processed sequence numbers or out-of-order messages. This mechanism detects duplicates from producer retries without requiring the broker to store message contents."
+          },
+          {
+            "id": 63,
+            "category": "State Stores",
+            "question": "What is the impact of setting persistent=false when creating a state store in Kafka Streams?",
+            "options": [
+              "The state store will not use a changelog topic and will lose data on application restart",
+              "The state store will use a changelog topic but with a shorter retention period",
+              "The state store will be shared across all instances of the application",
+              "The state store will not be used for joins or aggregations"
+            ],
+            "answer": "The state store will not use a changelog topic and will lose data on application restart",
+            "explanation": "Setting persistent=false creates an in-memory state store without a changelog topic. This means the state exists only in memory and will be lost on application restart or failure. While this provides faster access by avoiding disk I/O, it sacrifices durability and recoverability. Use in-memory stores only for situations where state reconstruction from input topics is acceptable or where the state is temporary."
+          },
+          {
+            "id": 64,
+            "category": "Stateful Operations",
+            "question": "Which of these operations in Kafka Streams requires a repartition AND maintains state?",
+            "options": [
+              "filter()",
+              "flatMap()",
+              "map()",
+              "groupByKey().count()"
+            ],
+            "answer": "groupByKey().count()",
+            "explanation": "groupByKey().count() requires maintaining state AND can trigger repartitioning. The count() operation maintains a state store to track counts for each key. While groupByKey() itself doesn't require repartitioning (since it groups by the existing key), if any operation before it changed the key, a repartition will occur. The other operations (filter, flatMap, map) are stateless and don't maintain aggregation state, though map() and flatMap() can trigger repartitioning if they change the message key."
+          },
+          {
+            "id": 65,
+            "category": "Stateless vs Stateful Operations",
+            "question": "In Kafka Streams, an application reads from a source topic, filters out some messages, transforms the remaining messages, and writes to an output topic. Which statement is correct about this application?",
+            "options": [
+              "It is stateful because all Kafka Streams applications maintain state",
+              "It is stateful because it needs to remember which messages were filtered out",
+              "It is stateful because any data transformation requires state",
+              "It is stateless because filtering and transformation don't require maintaining state across messages"
+            ],
+            "answer": "It is stateless because filtering and transformation don't require maintaining state across messages",
+            "explanation": "This application is stateless because its operations (filtering and transformation) process each message independently without needing to reference other messages. Stateless operations don't require persistent state stores or changelog topics because they don't need to remember information between messages. Only operations like aggregations, joins, and windowing that need to reference multiple messages are stateful."
+          },
+          {
+            "id": 66,
+            "category": "Producer Acks",
+            "question": "A banking application uses Kafka to process financial transactions. The system must guarantee that once a transaction is accepted, it will never be lost, even if multiple brokers fail. Which producer configuration provides the strongest durability guarantees?",
+            "options": [
+              "acks=1, min.insync.replicas=1, replication.factor=3",
+              "acks=all, min.insync.replicas=1, replication.factor=3",
+              "acks=all, min.insync.replicas=2, replication.factor=3",
+              "acks=all, min.insync.replicas=3, replication.factor=3"
+            ],
+            "answer": "acks=all, min.insync.replicas=2, replication.factor=3",
+            "explanation": "The strongest practical durability guarantee comes from acks=all, min.insync.replicas=2, replication.factor=3. This ensures writes are acknowledged only when at least 2 replicas (including the leader) have the data, providing protection against data loss if a single broker fails immediately after acknowledging. With replication.factor=3, the system can survive one broker failure while still maintaining the min.insync.replicas=2 requirement. Setting min.insync.replicas=3 would provide stronger guarantees theoretically but would make the system unavailable if any single broker fails."
+          },
+          {
+            "id": 67,
+            "category": "Producer Acks",
+            "question": "What happens when a producer is configured with acks=all, min.insync.replicas=2, replication.factor=3, and all 3 replica brokers are online, but one replica falls significantly behind in replication?",
+            "options": [
+              "Produce requests will be rejected with a NOT_ENOUGH_REPLICAS exception",
+              "Produce requests will succeed because 2 replicas (the leader and one follower) are still in-sync",
+              "Produce requests will time out until the lagging replica catches up",
+              "The lagging replica will be removed from the ISR, and the leader will continue accepting requests"
+            ],
+            "answer": "The lagging replica will be removed from the ISR, and the leader will continue accepting requests",
+            "explanation": "When a replica falls significantly behind (beyond replica.lag.time.max.ms), it's removed from the In-Sync Replicas (ISR) list. With min.insync.replicas=2 and 2 remaining replicas in the ISR (the leader and one in-sync follower), produce requests will continue to succeed. The leader dynamically manages the ISR based on replica sync status, removing lagging replicas and adding them back when they catch up. This maintains availability while still satisfying the min.insync.replicas requirement."
+          },
+          {
+            "id": 68,
+            "category": "Kafka CLI Scripts",
+            "question": "Using the Kafka CLI, which command can be used to display the Kafka version?",
+            "options": [
+              "kafka-topics.sh --version",
+              "kafka-server-start.sh --version",
+              "kafka-configs.sh --version",
+              "kafka-run-class.sh kafka.tools.VersionInfo"
+            ],
+            "answer": "kafka-run-class.sh kafka.tools.VersionInfo",
+            "explanation": "The command kafka-run-class.sh kafka.tools.VersionInfo will display the Kafka version. Unlike many software tools, Kafka doesn't provide a simple --version flag for its standard scripts. Instead, you need to use kafka-run-class.sh to run the VersionInfo tool which displays detailed version information. This is a somewhat unusual approach but is the standard way to check Kafka versions via the command line."
+          },
+          {
+            "id": 69,
+            "category": "Kafka CLI Scripts",
+            "question": "Which Kafka CLI command would you use to list all consumer groups in a Kafka cluster?",
+            "options": [
+              "kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list",
+              "kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --all-groups",
+              "kafka-groups.sh --bootstrap-server localhost:9092 --list",
+              "kafka-run-class.sh kafka.admin.ConsumerGroupCommand --bootstrap-server localhost:9092 --list"
+            ],
+            "answer": "kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list",
+            "explanation": "To list all consumer groups in a Kafka cluster, use kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list. This command connects to the specified Kafka broker and returns a list of all consumer groups. The --describe flag would provide details about a specific group but requires --group to be specified (or --all-groups in some versions). kafka-groups.sh doesn't exist as a standard Kafka CLI tool. The kafka-run-class version is the older, more verbose way to run the same command."
+          },
+          {
+            "id": 70,
+            "category": "Kafka CLI Scripts",
+            "question": "To create a new topic with specific configurations in Kafka, which CLI command is correct?",
+            "options": [
+              "kafka-topics.sh --create --bootstrap-server localhost:9092 --topic my-topic --partitions 3 --replication-factor 2",
+              "kafka-topics.sh --create --bootstrap-server localhost:9092 --topic my-topic --num-partitions 3 --replication 2",
+              "kafka-admin.sh --create-topic my-topic --bootstrap-server localhost:9092 --partitions 3 --replication-factor 2",
+              "kafka-run-class.sh kafka.admin.TopicCommand --create --bootstrap-server localhost:9092 --topic my-topic --partitions 3 --replication-factor 2"
+            ],
+            "answer": "kafka-topics.sh --create --bootstrap-server localhost:9092 --topic my-topic --partitions 3 --replication-factor 2",
+            "explanation": "The correct command to create a topic is kafka-topics.sh --create --bootstrap-server localhost:9092 --topic my-topic --partitions 3 --replication-factor 2. This specifies the operation (create), the broker connection, the topic name, the number of partitions, and the replication factor. The parameter is --partitions, not --num-partitions, and --replication-factor, not just --replication. kafka-admin.sh doesn't exist as a standard Kafka CLI tool. While the kafka-run-class version could work in older versions, kafka-topics.sh is the recommended interface."
+          }
+        ,{
+            "id": 41,
+            "category": "Schema Registry",
+            "question": "What happens when a producer using Schema Registry encounters a compatibility check failure?",
+            "options": [
+              "The producer automatically falls back to using the previous schema version",
+              "The producer throws a SchemaValidationException before sending any data",
+              "The message is sent to Kafka with a special flag indicating schema incompatibility",
+              "The message is sent to Kafka but the consumer will reject it during deserialization"
+            ],
+            "answer": "The producer throws a SchemaValidationException before sending any data",
+            "explanation": "When a compatibility check fails, the producer throws a SchemaValidationException before sending any data to Kafka. The schema validation occurs during serialization when the producer attempts to register the new schema with Schema Registry. If the schema fails compatibility checks, the producer stops immediately - no data is sent to Kafka, preventing incompatible data from entering the system."
+          },
+          {
+            "id": 42,
+            "category": "Schema Registry",
+            "question": "In the Confluent Schema Registry, what is a subject?",
+            "options": [
+              "A collection of compatible schema versions for a specific data type",
+              "A Kafka topic that contains messages formatted with a specific schema",
+              "A user-defined category for organizing schemas with similar structures",
+              "A schema validator that enforces rules on record structures"
+            ],
+            "answer": "A collection of compatible schema versions for a specific data type",
+            "explanation": "In Schema Registry, a subject is a collection of compatible schema versions for a specific data type, typically associated with a Kafka topic's key or value. Subjects follow naming conventions like <topic-name>-key or <topic-name>-value. Schema Registry enforces compatibility rules within a subject, ensuring new schemas maintain compatibility with previous versions according to the configured compatibility type."
+          },
+          {
+            "id": 43,
+            "category": "Schema Registry",
+            "question": "How does Schema Registry handle schema versioning?",
+            "options": [
+              "It uses Git-like versioning with major, minor, and patch numbers",
+              "It uses sequential version numbers starting from 1 for each new schema",
+              "It generates UUIDs for each schema and stores them in chronological order",
+              "It uses hash codes of the schema contents as version identifiers"
+            ],
+            "answer": "It uses sequential version numbers starting from 1 for each new schema",
+            "explanation": "Schema Registry uses simple sequential version numbers for each schema within a subject, starting from 1 for the first registered schema. Each time a new compatible schema is registered under the same subject, its version increments by 1. This approach makes it easy to track schema evolution over time and reference specific versions."
+          },
+          {
+            "id": 44,
+            "category": "Schema Registry",
+            "question": "What is the difference between Schema Registry's BACKWARD and BACKWARD_TRANSITIVE compatibility modes?",
+            "options": [
+              "BACKWARD checks compatibility only with the most recent version, while BACKWARD_TRANSITIVE checks with all previous versions",
+              "BACKWARD only applies to Avro schemas, while BACKWARD_TRANSITIVE works with all schema formats",
+              "BACKWARD allows adding optional fields, while BACKWARD_TRANSITIVE doesn't allow any field additions",
+              "BACKWARD is for development environments, while BACKWARD_TRANSITIVE is for production use"
+            ],
+            "answer": "BACKWARD checks compatibility only with the most recent version, while BACKWARD_TRANSITIVE checks with all previous versions",
+            "explanation": "BACKWARD compatibility ensures that new consumers using the new schema can read data produced with the most recent previous schema version. BACKWARD_TRANSITIVE extends this by checking compatibility with all previous schema versions, not just the latest one. This stricter mode ensures that consumers using the newest schema can read data written with any previous schema version, providing stronger guarantees for long-lived data."
+          },
+          {
+            "id": 45,
+            "category": "Schema Registry",
+            "question": "Which REST API endpoint would you use to check compatibility of a new schema against the latest version in a subject?",
+            "options": [
+              "POST /compatibility/subjects/{subject}/versions/latest",
+              "GET /subjects/{subject}/versions/latest/compatible",
+              "POST /subjects/{subject}/versions/compatible",
+              "GET /compatibility/check/{subject}"
+            ],
+            "answer": "POST /compatibility/subjects/{subject}/versions/latest",
+            "explanation": "To check compatibility without registering a schema, use POST /compatibility/subjects/{subject}/versions/latest. This endpoint validates the schema against the latest version in the subject according to the configured compatibility rules, returning whether it would be accepted without actually registering it - useful for testing schema changes before deployment."
+          },
+          {
+            "id": 46,
+            "category": "Kafka Streams Joins",
+            "question": "Which type of join in Kafka Streams requires the input topics to have the same number of partitions and the same partitioning strategy?",
+            "options": [
+              "KStream-to-KStream join only",
+              "KTable-to-KTable join only",
+              "KStream-to-KTable join only",
+              "KStream-to-KStream, KTable-to-KTable, and KStream-to-KTable joins"
+            ],
+            "answer": "KStream-to-KStream, KTable-to-KTable, and KStream-to-KTable joins",
+            "explanation": "KStream-to-KStream, KTable-to-KTable, and KStream-to-KTable joins all require co-partitioned topics, meaning the input topics must have the same number of partitions and use the same partitioning strategy. This ensures that records with the same key are processed on the same task, enabling local joins without data shuffling. Only KStream-to-GlobalKTable joins don't require co-partitioning, as GlobalKTable replicates all data to every instance."
+          },
+          {
+            "id": 47,
+            "category": "Kafka Streams Joins",
+            "question": "Why doesn't a KStream-to-GlobalKTable join require co-partitioning?",
+            "options": [
+              "Because GlobalKTable contains a complete copy of the table data on each instance",
+              "Because KStream data is automatically repartitioned during the join operation",
+              "Because the join is performed by the Kafka broker, not the Streams application",
+              "Because this type of join only supports foreign-key joins, not key-based joins"
+            ],
+            "answer": "Because GlobalKTable contains a complete copy of the table data on each instance",
+            "explanation": "A KStream-to-GlobalKTable join doesn't require co-partitioning because the GlobalKTable contains a complete copy of the table data on each Kafka Streams instance. This means any Streams task can join any KStream record with any GlobalKTable key, regardless of partitioning. This flexibility comes at the cost of increased memory usage, as each instance must hold the entire GlobalKTable dataset."
+          },
+          {
+            "id": 48,
+            "category": "Kafka Connect Converters",
+            "question": "What is the primary purpose of converters in Kafka Connect?",
+            "options": [
+              "To convert data between different programming languages",
+              "To transform data from one structure to another during ingestion",
+              "To translate between Connect's internal data format and serialized Kafka format",
+              "To map data types between source and destination systems"
+            ],
+            "answer": "To translate between Connect's internal data format and serialized Kafka format",
+            "explanation": "Converters in Kafka Connect translate between Connect's internal data representation (ConnectRecord with Schema and Value) and the serialized format used with Kafka topics. They handle serialization when writing to Kafka and deserialization when reading from Kafka. Common converters include JsonConverter, AvroConverter with Schema Registry, and StringConverter. Converters operate at the serialization level, not structure transformation or data type mapping."
+          },
+          {
+            "id": 49,
+            "category": "Kafka Connect Converters",
+            "question": "Which configuration in Kafka Connect specifies different converters for a connector's keys and values?",
+            "options": [
+              "key.converter and value.converter",
+              "key.serializer and value.serializer",
+              "key.format and value.format",
+              "key.type and value.type"
+            ],
+            "answer": "key.converter and value.converter",
+            "explanation": "In Kafka Connect, key.converter and value.converter configurations specify different converters for message keys and values. These can be set globally in the worker properties or overridden per connector. For example, you might use StringConverter for keys and JsonConverter for values. Unlike Kafka clients that use serializers/deserializers, Connect uses converters which handle both serialization and deserialization within the Connect framework."
+          },
+          {
+            "id": 50,
+            "category": "Serializers and Deserializers",
+            "question": "What is a Serde in Kafka Streams, and how is it related to Serializers and Deserializers?",
+            "options": [
+              "Serde is a configuration property that controls how data is processed in the Streams API",
+              "Serde is a wrapper that contains both a Serializer and a Deserializer for a specific data type",
+              "Serde is a special type of stream processor that handles data format conversions",
+              "Serde is a storage format optimized for stateful operations in Kafka Streams"
+            ],
+            "answer": "Serde is a wrapper that contains both a Serializer and a Deserializer for a specific data type",
+            "explanation": "In Kafka Streams, a Serde (Serializer/Deserializer) is a wrapper that contains both a Serializer and a Deserializer for a specific data type. It provides a convenient way to configure both serialization and deserialization with a single object. The Kafka Streams API requires Serdes for specifying how to serialize/deserialize keys and values when reading from or writing to Kafka topics. Common implementations include Serdes.String(), Serdes.Long(), and custom Serdes for application-specific types."
+          },
+          {
+            "id": 51,
+            "category": "Serializers and Deserializers",
+            "question": "Which method in the Kafka Serializer interface is responsible for converting a Java object to bytes?",
+            "options": [
+              "convert(String topic, T data)",
+              "serialize(String topic, T data)",
+              "toBytes(String topic, T data)",
+              "transform(String topic, T data)"
+            ],
+            "answer": "serialize(String topic, T data)",
+            "explanation": "The serialize(String topic, T data) method in the Kafka Serializer interface is responsible for converting a Java object to bytes. This method takes the topic name and the data object as parameters and returns a byte array. The topic parameter allows implementing topic-specific serialization if needed. The Deserializer interface has a complementary deserialize(String topic, byte[] data) method for the reverse transformation."
+          },
+          {
+            "id": 52,
+            "category": "ksqlDB Metadata Storage",
+            "question": "When operating ksqlDB in headless mode, where does ksqlDB store metadata, and what information is stored in the corresponding storage?",
+            "options": [
+              "In ZooKeeper, storing query definitions and state",
+              "In local files on each ksqlDB server, storing query execution plans",
+              "In the Kafka cluster, storing command and command topics with DDL statements",
+              "In an external metadata database, storing schemas and queries"
+            ],
+            "answer": "In the Kafka cluster, storing command and command topics with DDL statements",
+            "explanation": "In headless mode, ksqlDB stores metadata in internal Kafka topics within the Kafka cluster itself. Specifically, it uses a command topic (default: _confluent-ksql-{serviceId}_command_topic) to store all DDL statements (CREATE, DROP), CSAS/CTAS queries, and TERMINATE statements. This approach ensures durability and enables multiple ksqlDB servers to share the same metadata and maintain consistent state, allowing for distributed operations and fault tolerance."
+          },
+          {
+            "id": 53,
+            "category": "Stateless vs Stateful Operations",
+            "question": "Which of the following is a stateless operation in Kafka Streams?",
+            "options": [
+              "aggregate()",
+              "count()",
+              "join()",
+              "filter()"
+            ],
+            "answer": "filter()",
+            "explanation": "Filter() is a stateless operation in Kafka Streams as it processes each record independently without needing to store any state between records. It simply evaluates a predicate function on each input record and passes or drops it accordingly. The other options are stateful: aggregate() maintains aggregation state, count() keeps running counts, and join() requires matching records from multiple streams/tables with state stores."
+          },
+          {
+            "id": 54,
+            "category": "Stateless vs Stateful Operations",
+            "question": "What is the key difference between stateful and stateless operations in Kafka Streams?",
+            "options": [
+              "Stateful operations are faster than stateless operations",
+              "Stateful operations require local state stores, while stateless operations don't",
+              "Stateful operations are only available in the DSL, not the Processor API",
+              "Stateful operations support exactly-once semantics, while stateless don't"
+            ],
+            "answer": "Stateful operations require local state stores, while stateless operations don't",
+            "explanation": "The key difference is that stateful operations require local state stores to maintain data across multiple records, while stateless operations don't. Stateful operations (like aggregations, joins, windowing) need to remember previous records to compute their results, using persistent state stores backed by changelog topics for fault tolerance. Stateless operations (filter, map, flatMap) process records independently without maintaining state, making them simpler but less powerful for complex processing."
+          },
+          {
+            "id": 55,
+            "category": "Kafka Streams State Storage",
+            "question": "What is the purpose of a changelog topic in Kafka Streams state stores?",
+            "options": [
+              "To log application errors for debugging purposes",
+              "To store the complete processing history of the application",
+              "To back up the state store for fault tolerance and recovery",
+              "To capture metadata about the stream processing topology"
+            ],
+            "answer": "To back up the state store for fault tolerance and recovery",
+            "explanation": "Changelog topics back up state stores for fault tolerance and recovery in Kafka Streams. When a stateful operation uses a state store, changes are logged to a changelog topic in addition to the local store. If a Streams instance fails, its tasks can be reassigned and rebuild their state stores by replaying the changelog, ensuring recovery without data loss. Changelogs enable the exactly-once processing semantics Kafka Streams provides."
+          },
+          {
+            "id": 56,
+            "category": "Kafka Streams State Storage",
+            "question": "How does Kafka Streams handle state stores during rebalancing?",
+            "options": [
+              "State stores are lost and must be rebuilt from scratch after rebalancing",
+              "State stores are automatically transferred to the new instance via direct network transfer",
+              "State stores are rebuilt by replaying the changelog topic on the new instance",
+              "State stores are saved in ZooKeeper and restored on the new instance"
+            ],
+            "answer": "State stores are rebuilt by replaying the changelog topic on the new instance",
+            "explanation": "During rebalancing, Kafka Streams rebuilds state stores by replaying their changelog topics on the new instances that take ownership of the partitions. When tasks are reassigned due to scaling or failure, the new instance reads from the changelog topic to reconstruct the exact state before the rebalance. This approach ensures consistent state without requiring direct transfer between instances, leveraging Kafka's built-in persistence and replication."
+          },
+          {
+            "id": 57,
+            "category": "Schema Registry",
+            "question": "What is the Schema Registry's global compatibility setting?",
+            "options": [
+              "A default compatibility mode that applies to all subjects unless overridden",
+              "A compatibility check that ensures schemas work across multiple Kafka clusters",
+              "A mode that enforces the same schema across all topics in the Kafka cluster",
+              "A configuration that determines whether schemas are stored globally or per-topic"
+            ],
+            "answer": "A default compatibility mode that applies to all subjects unless overridden",
+            "explanation": "The global compatibility setting in Schema Registry is a default compatibility mode (e.g., BACKWARD, FORWARD, FULL) that applies to all subjects unless specifically overridden at the subject level. When new schemas are registered, they're checked against this global setting if no subject-specific setting exists. You can configure different compatibility modes for specific subjects while letting others use the global default."
+          },
+          {
+            "id": 58,
+            "category": "Schema Registry",
+            "question": "What happens when you request the latest schema for a subject from Schema Registry?",
+            "options": [
+              "You get the most recently registered schema, regardless of compatibility",
+              "You get the schema with the highest version number",
+              "You get the schema that is most compatible with your client version",
+              "You get the schema that is most widely used by producers"
+            ],
+            "answer": "You get the schema with the highest version number",
+            "explanation": "When requesting the latest schema for a subject, Schema Registry returns the schema with the highest version number. Schema Registry tracks versions sequentially, so the highest version number represents the most recently registered compatible schema. This behavior allows clients to always retrieve the most up-to-date schema definition, which is particularly useful for consumers that need to deserialize data produced with various schema versions."
+          },
+          {
+            "id": 59,
+            "category": "Kafka Streams Joins",
+            "question": "For a KTable-to-KTable join in Kafka Streams, when is the join result updated?",
+            "options": [
+              "Only when both KTables receive updates with matching keys",
+              "Whenever either KTable receives an update to a key that exists in both tables",
+              "At regular intervals defined by a windowing configuration",
+              "Only when explicitly triggered by an application-defined function"
+            ],
+            "answer": "Whenever either KTable receives an update to a key that exists in both tables",
+            "explanation": "In a KTable-to-KTable join, the join result is updated whenever either KTable receives an update to a key that exists in both tables. Since KTables represent the current state for each key, any change to either table for a shared key triggers a join computation and produces a new result. This behavior enables maintaining a continuously updated joined view that reflects the latest state of both tables."
+          },
+          {
+            "id": 60,
+            "category": "Serializers and Deserializers",
+            "question": "Which of these statements about the JsonSerializer in Kafka is correct?",
+            "options": [
+              "It automatically registers schemas with Schema Registry",
+              "It requires a Jackson ObjectMapper to be configured",
+              "It provides full schema evolution support like the AvroSerializer",
+              "It automatically handles type information like Java generics"
+            ],
+            "answer": "It requires a Jackson ObjectMapper to be configured",
+            "explanation": "The JsonSerializer in Kafka requires a Jackson ObjectMapper to be configured for customizing JSON serialization. Unlike AvroSerializer, it doesn't integrate with Schema Registry by default or provide the same level of schema evolution support. JsonSerializer also can't automatically preserve complete type information like Java generics, which can cause issues with complex types unless explicitly handled."
+          }
+        ,{
+            "id": 25,
+            "category": "Serialization",
+            "question": "A team needs to implement a custom serializer/deserializer for complex objects in their Kafka application. Which methods must they implement in a custom Serializer<T> class?",
+            "options": [
+              "serialize(String topic, T data) only",
+              "serialize(String topic, T data) and deserialize(String topic, byte[] data)",
+              "serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close()",
+              "serialize(String topic, Headers headers, T data) and toBytes(T data)"
+            ],
+            "answer": "serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close()",
+            "explanation": "A custom Serializer<T> class must implement three methods: serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close(). The serialize method is the core method that converts the object to a byte array. The configure method initializes the serializer with configuration properties and indicates whether it's for keys or values. The close method handles any cleanup. The deserialize method is part of the Deserializer interface, not the Serializer interface. The serializer and deserializer are separate classes in Kafka, unlike some other systems that combine them. The other option with Headers and toBytes contains method signatures that don't exist in Kafka's Serializer interface."
+          },
+          {
+            "id": 26,
+            "category": "Serialization",
+            "question": "When using Avro with Schema Registry in a Kafka application, how are schemas validated?",
+            "options": [
+              "Schemas are validated against previously registered schemas when a producer attempts to register a new schema",
+              "Schemas are validated by the broker before it accepts messages with the schema",
+              "Schemas are validated when a consumer attempts to deserialize a message",
+              "Schemas are not validated; Schema Registry only stores them for reference"
+            ],
+            "answer": "Schemas are validated against previously registered schemas when a producer attempts to register a new schema",
+            "explanation": "When using Avro with Schema Registry, schemas are validated against previously registered schemas when a producer attempts to register a new schema. The Schema Registry enforces compatibility rules (based on the configured compatibility type like BACKWARD, FORWARD, or FULL) by checking if the new schema is compatible with existing schemas for the same subject. This validation happens before the schema is registered and before any data is actually produced. The broker doesn't validate schemas directly - it just receives serialized data. Consumers typically don't trigger validation; they simply request the schema from the registry to deserialize messages. Schema Registry isn't just a passive storage system; it actively enforces compatibility rules to prevent breaking changes."
+          },
+          {
+            "id": 27,
+            "category": "Internal Topics",
+            "question": "What is the purpose of the __transaction_state internal topic in Kafka?",
+            "options": [
+              "It stores consumer group offset information",
+              "It manages the transactional state for transactions across multiple topics and partitions",
+              "It tracks which messages have been processed in exactly-once delivery scenarios",
+              "It contains metadata about topic configurations"
+            ],
+            "answer": "It manages the transactional state for transactions across multiple topics and partitions",
+            "explanation": "The __transaction_state internal topic manages the transactional state for transactions across multiple topics and partitions. This topic is used by Kafka's transaction coordinator to maintain information about ongoing transactions, including their status (started, preparing to commit, committed, or aborted). It enables Kafka's transactional capability, which allows producers to send messages to multiple topics and partitions atomically, ensuring that either all messages in a transaction are committed or none are. The __consumer_offsets topic (not __transaction_state) stores consumer group offsets. Exactly-once delivery uses transactional IDs and producer IDs but doesn't have a dedicated tracking topic. Topic configuration metadata is stored in ZooKeeper or in KRaft metadata, not in a dedicated internal topic."
+          },
+          {
+            "id": 28,
+            "category": "Internal Topics",
+            "question": "When migrating a Kafka cluster, what special consideration must be given to internal topics like __consumer_offsets?",
+            "options": [
+              "They must be manually recreated on the new cluster, as they cannot be migrated",
+              "They should not be migrated as the new cluster will automatically recreate them",
+              "They should be migrated using a different tool than regular application topics",
+              "They should be migrated like regular topics, but with careful attention to partition count and replication factor"
+            ],
+            "answer": "They should be migrated like regular topics, but with careful attention to partition count and replication factor",
+            "explanation": "When migrating a Kafka cluster, internal topics like __consumer_offsets should be migrated like regular topics, but with careful attention to preserving their partition count and replication factor. These internal topics contain critical metadata, and migrating them correctly ensures that consumer groups maintain their offset positions and other internal state. Simply recreating them on the new cluster would lose all current offset information, potentially causing consumers to reprocess data or skip messages. No special tool is needed for internal topics versus regular topics - standard migration tools like MirrorMaker can handle them. However, it's crucial to ensure that these topics are included in the migration plan and that their configuration (particularly partition count) matches the source cluster to maintain the same hashing behavior for keys."
+          },
+          {
+            "id": 29,
+            "category": "Producer Configs",
+            "question": "A Kafka producer is sending sensor reading messages where occasional message loss is acceptable, but low latency is critical. Which configuration is most appropriate?",
+            "options": [
+              "acks=all, retries=3, batch.size=16384, linger.ms=0",
+              "acks=1, retries=1, batch.size=16384, linger.ms=5",
+              "acks=0, retries=0, batch.size=16384, linger.ms=0",
+              "acks=1, retries=0, compression.type=snappy, batch.size=32768"
+            ],
+            "answer": "acks=0, retries=0, batch.size=16384, linger.ms=0",
+            "explanation": "For a scenario where occasional message loss is acceptable but low latency is critical, the most appropriate configuration is acks=0, retries=0, batch.size=16384, linger.ms=0. Setting acks=0 means the producer doesn't wait for any acknowledgment from the broker, which minimizes latency at the cost of potential message loss if the broker fails. Setting retries=0 ensures that failed sends aren't retried, which could otherwise introduce delays. Using batch.size=16384 (a modest value) and linger.ms=0 (no artificial delay) ensures messages are sent immediately without waiting to batch. While compression might improve throughput, it adds CPU overhead and potentially increases latency. The other options prioritize reliability over latency with their acks and retries settings, which doesn't match the specified requirements."
+          },
+          {
+            "id": 30,
+            "category": "Producer Configs",
+            "question": "What is the effect of setting enable.idempotence=true on a Kafka producer?",
+            "options": [
+              "It only prevents duplicate messages if acks=all is also set",
+              "It automatically adjusts retries, acks, and max.in.flight.requests.per.connection to ensure exactly-once delivery",
+              "It ensures exactly-once processing for consumers reading the produced messages",
+              "It prevents the producer from sending multiple messages with the same key"
+            ],
+            "answer": "It automatically adjusts retries, acks, and max.in.flight.requests.per.connection to ensure exactly-once delivery",
+            "explanation": "Setting enable.idempotence=true automatically adjusts several configurations to ensure exactly-once delivery semantics: retries is set to Integer.MAX_VALUE, acks is set to 'all', and max.in.flight.requests.per.connection is capped at 5. These settings work together to prevent duplicates while maintaining message order. When idempotence is enabled, the producer includes a Producer ID and sequence numbers with each message, allowing the broker to detect and reject duplicates. This ensures exactly-once delivery to the Kafka log, not exactly-once processing by consumers (which requires additional mechanisms). Option A is incorrect because the producer automatically sets acks=all. Option C is incorrect because idempotence doesn't affect consumer processing semantics. Option D is incorrect because idempotence doesn't prevent multiple messages with the same key - it prevents the same message from being written multiple times."
+          },
+          {
+            "id": 31,
+            "category": "Consumer Configs",
+            "question": "A Kafka consumer application performs complex processing on each message, and occasionally takes longer than the default settings allow. Which configuration change would prevent consumer group rebalances due to processing delays?",
+            "options": [
+              "Increase session.timeout.ms",
+              "Decrease heartbeat.interval.ms",
+              "Increase max.poll.interval.ms",
+              "Set enable.auto.commit=false"
+            ],
+            "answer": "Increase max.poll.interval.ms",
+            "explanation": "When a consumer performs complex processing that takes longer than default settings allow, increasing max.poll.interval.ms is the appropriate configuration change to prevent rebalances due to processing delays. This parameter controls the maximum time between consecutive poll() calls before the consumer is considered failed. When processing takes too long, the consumer might exceed this interval, causing it to be removed from the group and triggering a rebalance. Increasing session.timeout.ms would prevent rebalances due to missed heartbeats, but that's a different issue than slow processing. Decreasing heartbeat.interval.ms would send heartbeats more frequently but wouldn't help if poll() isn't called. Setting enable.auto.commit=false changes how offsets are committed but doesn't affect the max.poll.interval.ms timeout."
+          },
+          {
+            "id": 32,
+            "category": "Consumer Configs",
+            "question": "What partition assignment strategy in Kafka minimizes the reassignment of partitions during consumer group rebalances?",
+            "options": [
+              "RangeAssignor",
+              "RoundRobinAssignor",
+              "StickyAssignor",
+              "DefaultAssignor"
+            ],
+            "answer": "StickyAssignor",
+            "explanation": "The StickyAssignor partition assignment strategy minimizes the reassignment of partitions during consumer group rebalances. Unlike RangeAssignor and RoundRobinAssignor, which completely reassign partitions without considering the previous assignment, StickyAssignor tries to maintain the existing partition-to-consumer assignments as much as possible during rebalances. It only reassigns partitions when necessary (e.g., when consumers join or leave the group), and it attempts to balance the number of partitions per consumer. This 'stickiness' reduces the impact of rebalances by minimizing partition movement, which helps maintain local consumer state and reduces the need to reload data. There is no DefaultAssignor - the default strategy in recent Kafka versions is actually the RangeAssignor, though this may vary by client version."
+          },
+          {
+            "id": 33,
+            "category": "Broker Configs",
+            "question": "Which Kafka broker configuration controls how long the broker will wait for all followers to acknowledge a write before responding to the producer when acks=all?",
+            "options": [
+              "replica.lag.time.max.ms",
+              "request.timeout.ms",
+              "min.insync.replicas",
+              "replica.fetch.wait.max.ms"
+            ],
+            "answer": "replica.lag.time.max.ms",
+            "explanation": "The replica.lag.time.max.ms configuration controls how long the broker will wait for all followers to acknowledge a write before responding to the producer when acks=all. This parameter defines the maximum time a follower can lag behind the leader before it's removed from the ISR (In-Sync Replicas) list. When a producer uses acks=all, the leader waits for acknowledgments from all ISRs before responding. If a follower doesn't acknowledge within replica.lag.time.max.ms, it's removed from the ISR, and the leader proceeds with the remaining ISRs. This parameter thus indirectly controls the maximum wait time for acknowledgments. The min.insync.replicas setting defines the minimum number of replicas that must acknowledge a write, not the wait time. request.timeout.ms is a client-side setting, not a broker configuration. replica.fetch.wait.max.ms doesn't exist as a standard Kafka configuration."
+          },
+          {
+            "id": 34,
+            "category": "Broker Configs",
+            "question": "A Kafka broker is configured with log.retention.hours=168 and log.retention.bytes=1073741824. How will these settings affect log retention?",
+            "options": [
+              "Logs will be retained for exactly 168 hours, with the oldest logs deleted first",
+              "Logs will be retained indefinitely unless the total size exceeds 1073741824 bytes",
+              "Logs will be retained for 168 hours AND until the total size exceeds 1073741824 bytes",
+              "Logs will be retained for 168 hours OR until the total size exceeds 1073741824 bytes, whichever comes first"
+            ],
+            "answer": "Logs will be retained for 168 hours OR until the total size exceeds 1073741824 bytes, whichever comes first",
+            "explanation": "When both time-based (log.retention.hours=168, or 7 days) and size-based (log.retention.bytes=1073741824, or 1GB) retention policies are configured, Kafka applies them as an OR condition. This means logs will be retained for 168 hours OR until the total size exceeds 1073741824 bytes, whichever comes first. If the log exceeds 1GB before 7 days, older segments will be deleted to maintain the size limit. If the log doesn't exceed 1GB within 7 days, segments older than 7 days will be deleted regardless of the total size. This approach ensures that both time and space constraints are respected independently, providing more flexible resource management. The policies are applied at the log segment level, not individual messages."
+          },
+          {
+            "id": 35,
+            "category": "Schema Compatibility",
+            "question": "A team adds a new required field to an Avro schema with BACKWARD compatibility enabled. What will happen?",
+            "options": [
+              "The new schema will be accepted because adding fields is always backward compatible",
+              "The new schema will be rejected because adding required fields breaks backward compatibility",
+              "The new schema will be accepted only if all existing data already contains this field",
+              "The new schema will be accepted but existing data will be automatically converted to include the new field"
+            ],
+            "answer": "The new schema will be rejected because adding required fields breaks backward compatibility",
+            "explanation": "With BACKWARD compatibility enabled, adding a new required field (a field without a default value) will be rejected because it breaks backward compatibility. Backward compatibility ensures that new schema versions can read data written with old schema versions. When a required field is added, new consumers using the new schema would expect this field to be present in all records, but old records written with the previous schema won't have this field, causing deserialization failures. For a field addition to be backward compatible, the field must have a default value so that new readers can populate the field with the default when reading old data. Adding a field with a default value would be acceptable with BACKWARD compatibility, but adding a required field is not."
+          },
+          {
+            "id": 36,
+            "category": "Schema Compatibility",
+            "question": "Which schema evolution change is allowed under BOTH BACKWARD and FORWARD compatibility modes?",
+            "options": [
+              "Changing a field's type from int to long",
+              "Removing a required field",
+              "Adding a field with a default value",
+              "Renaming a field without using aliases"
+            ],
+            "answer": "Adding a field with a default value",
+            "explanation": "Adding a field with a default value is allowed under BOTH BACKWARD and FORWARD compatibility modes. For BACKWARD compatibility, when new readers using the new schema read old data that doesn't contain the field, they can use the default value. For FORWARD compatibility, when old readers using the old schema read new data that contains the extra field, they simply ignore it since they don't know about it. The other options break at least one compatibility mode: Changing a field's type from int to long breaks both BACKWARD and FORWARD compatibility due to potential data misinterpretation. Removing a required field breaks BACKWARD compatibility because new readers would expect the field to be absent while old data would have it. Renaming a field without aliases breaks both compatibility modes because readers would be looking for a different field name than what's in the data."
+          },
+          {
+            "id": 37,
+            "category": "KSQL/KStreams",
+            "question": "Which of the following operations in Kafka Streams does NOT trigger a repartitioning?",
+            "options": [
+              "stream.selectKey((k, v) -> v.getUserId())",
+              "stream.groupBy((k, v) -> v.getCategory())",
+              "table.groupBy((k, v) -> KeyValue.pair(v.getRegion(), v))",
+              "stream.filter(v -> v.getAmount() > 1000)"
+            ],
+            "answer": "stream.filter(v -> v.getAmount() > 1000)",
+            "explanation": "The filter() operation does NOT trigger a repartitioning in Kafka Streams. Filter is a stateless operation that simply evaluates each record against a predicate and passes or drops it without changing the record's key or the required partition distribution. The other operations all cause repartitioning because they change the message key: selectKey() explicitly changes the key used for the stream, groupBy() groups records by a different key than their original key, and table.groupBy() creates a new grouping with a different key. Any operation that changes the key requires a repartitioning to ensure that all records with the same key are routed to the same partition for correct processing, particularly for operations like joins and aggregations that rely on co-location of related records."
+          },
+          {
+            "id": 38,
+            "category": "KSQL/KStreams",
+            "question": "What's the difference between KTable.toStream() and KTable.toStream(Named.as(\"name\"))?",
+            "options": [
+              "The second version creates a named stream for better visualization in tools like Topology Viewer",
+              "The second version creates a named changelog topic instead of using an auto-generated name",
+              "The first version converts the KTable to a KStream, while the second creates a persistent QueryableStateStore",
+              "There is no functional difference; the second version just adds a name for logging and metrics"
+            ],
+            "answer": "There is no functional difference; the second version just adds a name for logging and metrics",
+            "explanation": "There is no functional difference between KTable.toStream() and KTable.toStream(Named.as(\"name\")); the second version just adds a name for the operation that's used in logging and metrics. Both methods convert a KTable (which represents a changelog stream with the current value for each key) to a KStream (which represents a stream of key-value pairs). The Named.as() parameter doesn't create a named topic or state store, nor does it change the runtime behavior. It simply assigns a name to that step in the topology, which appears in logs, metrics, and visualization tools. This can be helpful for debugging and monitoring but doesn't alter the functional behavior of the application or how data flows through the topology."
+          },
+          {
+            "id": 39,
+            "category": "Kafka Connect",
+            "question": "Which feature of Kafka Connect is specifically designed to handle errors during message transformation or processing without failing the entire connector?",
+            "options": [
+              "Exactly-once delivery semantics",
+              "Offset management",
+              "Dead Letter Queue",
+              "Schema evolution"
+            ],
+            "answer": "Dead Letter Queue",
+            "explanation": "The Dead Letter Queue (DLQ) feature in Kafka Connect is specifically designed to handle errors during message transformation or processing without failing the entire connector. When a connector encounters problematic records (due to schema incompatibilities, transformation errors, or connector-specific issues), these records can be sent to a designated Kafka topic (the DLQ) along with error information, rather than failing the entire pipeline. This allows the connector to continue processing valid records while providing a mechanism to inspect and potentially fix the problematic ones. To use this feature, connectors can be configured with settings like errors.tolerance=all and errors.deadletterqueue.topic.name to specify the DLQ topic. The other options are important Kafka Connect features but don't directly address error handling: exactly-once semantics ensure records are processed exactly once, offset management tracks progress, and schema evolution handles changing data structures."
+          },
+          {
+            "id": 40,
+            "category": "Kafka Connect",
+            "question": "What is the difference between standalone and distributed modes in Kafka Connect?",
+            "options": [
+              "Standalone mode runs on a single worker, while distributed mode spreads tasks across a cluster of workers",
+              "Standalone mode is for development only, while distributed mode is for production",
+              "Standalone mode connects to a single Kafka cluster, while distributed mode connects to multiple clusters",
+              "Standalone mode supports only a subset of connectors, while distributed mode supports all connectors"
+            ],
+            "answer": "Standalone mode runs on a single worker, while distributed mode spreads tasks across a cluster of workers",
+            "explanation": "The key difference between standalone and distributed modes in Kafka Connect is that standalone mode runs on a single worker, while distributed mode spreads tasks across a cluster of workers. In standalone mode, all connector and task configurations are defined in local configuration files, and all tasks run on the same worker node. In distributed mode, configurations are submitted via the REST API and stored in Kafka topics, allowing tasks to be distributed across multiple workers for scalability and fault tolerance. Standalone mode is not limited to development environments and can be used in production for simpler deployments. Both modes can connect to the same Kafka clusters and support the same set of connectors. The choice between modes depends primarily on scalability, fault tolerance, and operational requirements rather than connector compatibility or environment type."
+          }
+
+      ,{
+        "id": 1,
+        "category": "KSQL Data Types",
+        "question": "Which of the following primitive types is NOT supported in KSQL?",
+        "options": [
+          "VARCHAR",
+          "LONG",
+          "BYTES",
+          "CHAR"
+        ],
+        "answer": "CHAR",
+        "explanation": "KSQL supports several primitive data types including VARCHAR (variable-length string), LONG (64-bit signed integer), and BYTES (variable-length byte array). However, it does NOT support CHAR (fixed-length string) as a data type. Instead, it only supports VARCHAR for string-type data. The supported primitive types in KSQL include: BOOLEAN, INTEGER/INT, BIGINT, DOUBLE, STRING/VARCHAR, BYTES, DECIMAL, and DATE/TIME types (DATE, TIME, TIMESTAMP). CHAR is typically found in traditional relational databases but is not part of the KSQL type system."
+      },
+      {
+        "id": 2,
+        "category": "KSQL Lambda Functions",
+        "question": "Which of the following functions can be used for invocation of KSQLDB lambda expressions?",
+        "options": [
+          "TRANSFORM and REDUCE",
+          "MAP and FILTER",
+          "APPLY and FOREACH",
+          "LAMBDA and EXECUTE"
+        ],
+        "answer": "TRANSFORM and REDUCE",
+        "explanation": "In KSQLDB, lambda expressions (which allow you to pass code as arguments to functions) can be invoked using the TRANSFORM and REDUCE functions. TRANSFORM applies a lambda expression to each element in an array and returns an array with the results. REDUCE applies a lambda expression to reduce an array to a single value by iteratively combining elements. Functions like MAP and FILTER are common in other stream processing systems but aren't used for lambdas in KSQLDB. APPLY, FOREACH, LAMBDA, and EXECUTE are not built-in KSQLDB functions for lambda invocation."
+      },
+      {
+        "id": 3,
+        "category": "Schema Compatibility",
+        "question": "A team has a production Kafka topic with Avro-serialized messages. They want to delete a field from their schema that is no longer needed. Several applications still use the old schema to consume data. Which compatibility mode would allow this change while ensuring existing consumers continue to work?",
+        "options": [
+          "FORWARD",
+          "BACKWARD",
+          "FULL",
+          "NONE"
+        ],
+        "answer": "FORWARD",
+        "explanation": "FORWARD compatibility ensures that old consumers (using the old schema) can read data produced with the new schema. Deleting a field is forward compatible because old consumers expecting that field will still be able to read new data - the field will just be populated with the default value if specified, or null for union types with null. BACKWARD compatibility wouldn't be sufficient here because it ensures new consumers can read old data, which doesn't address existing consumers using the old schema. FULL requires both FORWARD and BACKWARD compatibility. NONE would allow any change but removes all compatibility guarantees, which would be risky for production systems."
+      },
+      {
+        "id": 4,
+        "category": "Schema Compatibility",
+        "question": "A development team wants to evolve an Avro schema by changing the type of a field from 'int' to 'long'. Which compatibility setting would permit this change?",
+        "options": [
+          "BACKWARD",
+          "FORWARD",
+          "FULL",
+          "None of the above"
+        ],
+        "answer": "None of the above",
+        "explanation": "Changing a field's type from 'int' to 'long' is not allowed under any of the standard compatibility modes (BACKWARD, FORWARD, or FULL). This is because type changes are generally not compatible in either direction: New consumers expecting a 'long' might misinterpret old 'int' values (breaking backward compatibility), and old consumers expecting an 'int' might misinterpret new 'long' values (breaking forward compatibility). The only way to make this change would be to set compatibility to NONE, which turns off compatibility checking, or to use a more complex schema evolution approach such as adding a new field with the long type while maintaining the old int field during a transition period."
+      },
+      {
+        "id": 5,
+        "category": "Schema Compatibility",
+        "question": "An organization uses Schema Registry with BACKWARD compatibility and wants to merge two separate Avro schemas into a single schema to streamline development. The merged schema needs to be compatible with data written using both original schemas. How should they approach this?",
+        "options": [
+          "Make all fields in the merged schema optional with default values",
+          "Use schema unions to combine both original schemas exactly as they are",
+          "Set compatibility to NONE during the merge, then revert to BACKWARD after completion",
+          "The merge is not possible while maintaining BACKWARD compatibility"
+        ],
+        "answer": "Make all fields in the merged schema optional with default values",
+        "explanation": "To merge two Avro schemas while maintaining BACKWARD compatibility, making all fields in the merged schema optional with default values is the correct approach. With BACKWARD compatibility, newer schema versions must be able to read data written with older schemas. By making all fields optional (using unions with null) and providing default values, the merged schema can properly handle data written with either of the original schemas, even when fields from one original schema are missing in records written with the other original schema. Schema unions wouldn't be BACKWARD compatible because the writer schema must be a valid subtype of the reader schema. Setting compatibility to NONE is risky and unnecessary in this case."
+      },
+      {
+        "id": 6,
+        "category": "Schema Compatibility",
+        "question": "In a Schema Registry using FULL compatibility mode, a team wants to make the following change to their Avro schema:\n\nOriginal field: {\"name\": \"status\", \"type\": \"string\"}\nNew field: {\"name\": \"status\", \"type\": {\"type\": \"enum\", \"name\": \"Status\", \"symbols\": [\"ACTIVE\", \"INACTIVE\", \"PENDING\"]}}\n\nIs this change compatible?",
+        "options": [
+          "Yes, because enums are compatible with strings in Avro schema evolution",
+          "Yes, but only if all existing string values match one of the enum symbols",
+          "No, changing from string to enum breaks both FORWARD and BACKWARD compatibility",
+          "No, but it would be compatible under BACKWARD compatibility mode"
+        ],
+        "answer": "No, changing from string to enum breaks both FORWARD and BACKWARD compatibility",
+        "explanation": "Changing a field from a string type to an enum type breaks both FORWARD and BACKWARD compatibility in Avro. This is because: 1) New readers (expecting an enum) cannot correctly interpret old data (containing arbitrary strings), breaking BACKWARD compatibility, and 2) Old readers (expecting strings) cannot correctly interpret new data (containing enum values), breaking FORWARD compatibility. Since FULL compatibility requires both FORWARD and BACKWARD compatibility, this change would be rejected. The change would not be compatible under any of the standard compatibility modes unless all existing string values were already exactly matching the enum symbols, which would be rare in practice."
+      },
+      {
+        "id": 7,
+        "category": "Producer Configs",
+        "question": "A Kafka producer needs to ensure maximum throughput while still guaranteeing that messages are successfully written to the cluster. Which configuration combination best achieves this?",
+        "options": [
+          "acks=all, batch.size=16384, linger.ms=0, compression.type=none",
+          "acks=1, batch.size=65536, linger.ms=10, compression.type=lz4",
+          "acks=0, batch.size=131072, linger.ms=100, compression.type=snappy",
+          "acks=all, batch.size=131072, linger.ms=5, compression.type=zstd"
+        ],
+        "answer": "acks=1, batch.size=65536, linger.ms=10, compression.type=lz4",
+        "explanation": "For maximum throughput while still guaranteeing successful message delivery, the optimal configuration is: acks=1, batch.size=65536, linger.ms=10, compression.type=lz4. This combination provides a good balance: acks=1 ensures the leader replica acknowledges writes (offering reasonable durability without waiting for follower replicas); a large batch.size allows efficient batching; linger.ms=10 allows batches to fill while adding minimal latency; and lz4 compression provides excellent compression/speed ratio. acks=all would provide stronger durability but reduce throughput. acks=0 offers no guarantee of successful delivery. linger.ms=0 prevents batching optimization. Compression.type=none misses an opportunity for throughput gains, while zstd is more CPU-intensive than lz4."
+      },
+      {
+        "id": 8,
+        "category": "Producer Configs",
+        "question": "What is the effect of setting max.in.flight.requests.per.connection=5 and retries=3 on a producer without enabling idempotence?",
+        "options": [
+          "Increased throughput with guaranteed message order",
+          "Increased throughput with possible message reordering",
+          "Reduced throughput with guaranteed message order",
+          "Reduced throughput with possible message reordering"
+        ],
+        "answer": "Increased throughput with possible message reordering",
+        "explanation": "Setting max.in.flight.requests.per.connection=5 allows the producer to have up to 5 requests in flight at once, which increases throughput by enabling parallelism. However, when combined with retries=3 without enabling idempotence (enable.idempotence=true), this configuration can lead to message reordering. If an earlier request fails and is retried while later requests succeed, the retried message might end up being written after messages that were sent later, breaking the original order. This is a classic throughput vs. ordering trade-off. Setting max.in.flight.requests.per.connection=1 would maintain order but reduce throughput, while enabling idempotence would maintain both order and throughput."
+      },
+      {
+        "id": 9,
+        "category": "Producer Configs",
+        "question": "A Kafka producer application needs to handle messages that exceed the broker's maximum message size limit. Which approach is most appropriate?",
+        "options": [
+          "Increase the broker's message.max.bytes configuration to accommodate larger messages",
+          "Enable compression on the producer to reduce message size",
+          "Split large messages into chunks at the application level with correlation IDs",
+          "Set max.request.size on the producer to match the broker's limit and catch exceptions"
+        ],
+        "answer": "Split large messages into chunks at the application level with correlation IDs",
+        "explanation": "The most appropriate approach for handling messages that exceed the broker's maximum size limit is to split them into chunks at the application level with correlation IDs. This allows reconstruction of the complete message on the consumer side while working within Kafka's message size constraints. Increasing message.max.bytes on the broker could work but might impact cluster performance and would require administrative access. Compression helps but may not be sufficient for very large messages. Setting max.request.size equal to the broker limit doesn't solve the problem - it just ensures consistent rejection behavior. Implementing a chunking protocol at the application level provides the most robust and scalable solution."
+      },
+      {
+        "id": 10,
+        "category": "Consumer Configs",
+        "question": "What is the impact of setting isolation.level=read_committed on a Kafka consumer?",
+        "options": [
+          "The consumer will only read records that were produced as part of committed transactions or outside of transactions",
+          "The consumer will wait for all messages to be committed to all replicas before reading them",
+          "The consumer will only read records after committing its own offsets",
+          "The consumer will require the broker to have unclean.leader.election.enable=false"
+        ],
+        "answer": "The consumer will only read records that were produced as part of committed transactions or outside of transactions",
+        "explanation": "Setting isolation.level=read_committed means the consumer will only read records that were either produced outside of a transaction (non-transactional messages) or were produced as part of a transaction that was successfully committed. Records that are part of ongoing transactions or aborted transactions will not be visible to the consumer. This provides transaction isolation guarantees, ensuring that consumers only see consistent, committed transactional data. The default isolation.level=read_uncommitted allows consumers to read all messages regardless of transaction state. This setting is independent of how consumers commit their own offsets or broker replication configurations."
+      },
+      {
+        "id": 11,
+        "category": "Consumer Configs",
+        "question": "A Kafka consumer application processes streaming data and occasionally needs to reprocess earlier data. Which combination of consumer configurations would best support this requirement?",
+        "options": [
+          "enable.auto.commit=true, auto.offset.reset=earliest",
+          "enable.auto.commit=false, auto.offset.reset=earliest",
+          "enable.auto.commit=true, auto.offset.reset=latest",
+          "enable.auto.commit=false, auto.offset.reset=none"
+        ],
+        "answer": "enable.auto.commit=false, auto.offset.reset=earliest",
+        "explanation": "For an application that occasionally needs to reprocess earlier data, setting enable.auto.commit=false and auto.offset.reset=earliest is optimal. With enable.auto.commit=false, the application takes control of when offsets are committed, allowing it to explicitly reset positions when reprocessing is needed (via seek()). Setting auto.offset.reset=earliest ensures that when the consumer starts without a committed offset (such as after resetting), it will start from the beginning of the topic. The combination of manual offset management and earliest reset behavior gives the application maximum flexibility to reprocess data when needed while still making normal forward progress during standard operation."
+      },
+      {
+        "id": 12,
+        "category": "Consumer Configs",
+        "question": "In a high-throughput Kafka consumer application, which of these configurations has the LEAST impact on consumer performance?",
+        "options": [
+          "fetch.max.bytes",
+          "max.poll.records",
+          "heartbeat.interval.ms",
+          "fetch.min.bytes"
+        ],
+        "answer": "heartbeat.interval.ms",
+        "explanation": "The heartbeat.interval.ms configuration has the least impact on consumer performance in a high-throughput scenario. This parameter controls how frequently the consumer sends heartbeats to the group coordinator to indicate it's still alive, but it doesn't directly affect the data consumption path. The other options all directly impact throughput: fetch.max.bytes limits how much data can be fetched in a single request; max.poll.records limits how many records are returned in a single poll() call; and fetch.min.bytes can cause the broker to wait until enough data is available before responding. While heartbeat frequency is important for group membership, it operates on a separate channel from data consumption and doesn't typically become a bottleneck."
+      },
+      {
+        "id": 13,
+        "category": "Consumer Configs",
+        "question": "What is the primary purpose of configuring multiple consumers with the same group.id?",
+        "options": [
+          "To increase the availability of the consumer application through redundant processing",
+          "To distribute the processing load by allocating different partitions to each consumer",
+          "To ensure exactly-once processing semantics for messages",
+          "To replicate consumer offset information across multiple instances"
+        ],
+        "answer": "To distribute the processing load by allocating different partitions to each consumer",
+        "explanation": "The primary purpose of configuring multiple consumers with the same group.id is to distribute the processing load by allocating different partitions to each consumer. Kafka's consumer group mechanism ensures that each partition is assigned to exactly one consumer within the group, allowing for parallel processing of data across partitions. This is Kafka's fundamental scaling mechanism for consumption: adding more consumers to a group increases processing capacity up to the number of partitions in the topic. It doesn't provide redundant processing (each message is processed by only one consumer in the group), doesn't ensure exactly-once semantics (that's handled by other mechanisms), and doesn't replicate offset information (offsets are stored centrally in the __consumer_offsets topic)."
+      },
+      {
+        "id": 14,
+        "category": "Broker Configs",
+        "question": "A Kafka cluster needs to maximize throughput for producers while ensuring no data loss in case of a single broker failure. Which broker configuration best achieves this goal?",
+        "options": [
+          "default.replication.factor=3, min.insync.replicas=1, unclean.leader.election.enable=true",
+          "default.replication.factor=2, min.insync.replicas=1, unclean.leader.election.enable=false",
+          "default.replication.factor=3, min.insync.replicas=2, unclean.leader.election.enable=false",
+          "default.replication.factor=1, min.insync.replicas=1, unclean.leader.election.enable=false"
+        ],
+        "answer": "default.replication.factor=3, min.insync.replicas=2, unclean.leader.election.enable=false",
+        "explanation": "To maximize throughput while ensuring no data loss with a single broker failure, the optimal configuration is: default.replication.factor=3, min.insync.replicas=2, unclean.leader.election.enable=false. With 3 replicas, the cluster can tolerate one broker failure while still maintaining 2 copies of the data. Setting min.insync.replicas=2 ensures that writes are acknowledged only when at least 2 replicas (including the leader) have the data, providing protection against data loss if a single broker fails immediately after acknowledging. Setting unclean.leader.election.enable=false prevents out-of-sync replicas from becoming leaders, which could cause data loss. This configuration balances durability and availability while supporting high throughput."
+      },
+      {
+        "id": 15,
+        "category": "Broker Configs",
+        "question": "Which Kafka broker configuration parameter controls the number of threads used for processing requests after they've been accepted from the network?",
+        "options": [
+          "num.network.threads",
+          "num.io.threads",
+          "request.handler.threads",
+          "num.replica.fetchers"
+        ],
+        "answer": "num.io.threads",
+        "explanation": "The num.io.threads configuration parameter controls the number of threads used for processing requests after they've been accepted from the network. These threads handle the actual request processing logic and any associated disk I/O operations. The num.network.threads parameter controls the number of threads used for accepting connections and performing network I/O, not for request processing. The request.handler.threads parameter doesn't exist in Kafka broker configuration. The num.replica.fetchers parameter controls the number of threads used for fetching data from leader replicas, which is a specific function and not related to general request processing."
+      },
+      {
+        "id": 16,
+        "category": "Broker Configs",
+        "question": "What is the function of the log.segment.bytes parameter in Kafka broker configuration?",
+        "options": [
+          "Controls the maximum size of messages that can be received by the broker",
+          "Sets the maximum size of a single log segment file before a new one is created",
+          "Limits the total size of all log segments for a topic before deletion",
+          "Defines the buffer size used for replicating data between brokers"
+        ],
+        "answer": "Sets the maximum size of a single log segment file before a new one is created",
+        "explanation": "The log.segment.bytes parameter sets the maximum size of a single log segment file before a new one is created. In Kafka, each partition's log is divided into segments for easier management. When a segment reaches the size specified by log.segment.bytes, it is closed and a new one is created. This parameter affects how frequently segments are rolled and consequently how often they become eligible for deletion through log retention policies. Smaller segments mean more frequent rollovers and potentially more granular retention, but also more files to manage. This parameter doesn't control message size (that's message.max.bytes), limit total log size (that's log.retention.bytes), or affect replication buffer sizes."
+      },
+      {
+        "id": 17,
+        "category": "Java Producer Code",
+        "question": "Examine the following Kafka producer code:\n\n```java\nProperties props = new Properties();\nprops.put(\"bootstrap.servers\", \"localhost:9092\");\nprops.put(\"key.serializer\", \"org.apache.kafka.common.serialization.StringSerializer\");\nprops.put(\"value.serializer\", \"io.confluent.kafka.serializers.KafkaAvroSerializer\");\nprops.put(\"schema.registry.url\", \"http://localhost:8081\");\nprops.put(\"acks\", \"all\");\n\nProducer<String, GenericRecord> producer = new KafkaProducer<>(props);\n\nSchema schema = new Schema.Parser().parse(\"{\\\"type\\\":\\\"record\\\",\\\"name\\\":\\\"Payment\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"string\\\"},{\\\"name\\\":\\\"amount\\\",\\\"type\\\":\\\"double\\\"}]}\");\nGenericRecord payment = new GenericData.Record(schema);\npayment.put(\"id\", \"payment-123\");\npayment.put(\"amount\", 100.0);\n\nProducerRecord<String, GenericRecord> record = new ProducerRecord<>(\"payments\", payment.get(\"id\").toString(), payment);\nproducer.send(record);\n```\n\nAt what point is the Avro schema registered with Schema Registry?",
+        "options": [
+          "When the Schema object is created with new Schema.Parser().parse(...)",
+          "When the GenericRecord is created with new GenericData.Record(schema)",
+          "When the ProducerRecord is created with new ProducerRecord<>(...)",
+          "When producer.send(record) is called"
+        ],
+        "answer": "When producer.send(record) is called",
+        "explanation": "The Avro schema is registered with Schema Registry when producer.send(record) is called, not earlier in the process. The KafkaAvroSerializer (specified as the value.serializer) handles schema registration automatically during the serialization process, which occurs as part of the send() operation. Prior steps like creating the Schema object, creating the GenericRecord, or creating the ProducerRecord don't interact with the Schema Registry - they only create local objects in memory. It's only when the producer needs to actually serialize the record for sending that it uses the KafkaAvroSerializer, which checks if the schema is already registered, and if not, registers it with the Schema Registry before serializing the data."
+      },
+      {
+        "id": 18,
+        "category": "Java Producer Code",
+        "question": "What will happen in the following Kafka producer code if the broker is temporarily unavailable?\n\n```java\nProperties props = new Properties();\nprops.put(\"bootstrap.servers\", \"localhost:9092\");\nprops.put(\"key.serializer\", StringSerializer.class.getName());\nprops.put(\"value.serializer\", StringSerializer.class.getName());\nprops.put(\"retries\", 3);\nprops.put(\"retry.backoff.ms\", 1000);\n\nKafkaProducer<String, String> producer = new KafkaProducer<>(props);\n\nProducerRecord<String, String> record = new ProducerRecord<>(\"my-topic\", \"key\", \"value\");\nproducer.send(record);\nproducer.close(Duration.ofSeconds(5));\n```",
+        "options": [
+          "The producer will throw an immediate exception when send() is called",
+          "The producer will retry sending the message 3 times with 1-second backoff, then throw an exception",
+          "The producer will retry indefinitely until close() is called, then throw an exception",
+          "The producer will write to a local buffer and attempt to deliver when the broker is available"
+        ],
+        "answer": "The producer will retry sending the message 3 times with 1-second backoff, then throw an exception",
+        "explanation": "With the given configuration (retries=3, retry.backoff.ms=1000), the producer will retry sending the message 3 times with a 1-second backoff between attempts when the broker is unavailable. Since the send() call is used without a callback and the results are not checked, the exception won't be thrown immediately at the send() line. However, when producer.close() is called, it will wait for all in-flight requests to complete (including retries). At this point, if the message couldn't be sent after all retry attempts, an exception will be thrown. The producer doesn't retry indefinitely (it's limited by the retries setting) and doesn't maintain a persistent local buffer that survives closure for future delivery."
+      },
+      {
+        "id": 19,
+        "category": "KSQL/KStreams",
+        "question": "Which statement correctly describes the difference between a KStream and a KTable in Kafka Streams?",
+        "options": [
+          "KStream represents a log of changes where each record is independent, while KTable represents the latest state for each key",
+          "KStream can only be created from topics, while KTable can be derived from computation results",
+          "KStream supports stateless operations, while KTable only supports stateful operations",
+          "KStream is limited to primitive data types, while KTable supports complex objects"
+        ],
+        "answer": "KStream represents a log of changes where each record is independent, while KTable represents the latest state for each key",
+        "explanation": "The fundamental difference between KStream and KTable is that a KStream represents a log of changes where each record is treated as an independent event, while a KTable represents the latest state for each key (like a continuously updated lookup table). With a KStream, every record is processed individually regardless of its key. With a KTable, each record is treated as an update to the current value for that key, so only the latest value per key is maintained. This difference affects how operations like aggregations and joins work on each abstraction. Both KStream and KTable can be created from topics or derived from operations, both support stateless and stateful operations, and both work with the same data types."
+      },
+      {
+        "id": 20,
+        "category": "KSQL/KStreams",
+        "question": "Analyze the following ksqlDB query:\n\n```sql\nCREATE TABLE page_view_counts AS\n  SELECT pageId,\n         COUNT(*) AS view_count\n  FROM page_views\n  WINDOW TUMBLING (SIZE 1 HOUR)\n  GROUP BY pageId\n  EMIT CHANGES;\n```\n\nWhat will this query produce?",
+        "options": [
+          "A table showing the all-time count of views for each page",
+          "A stream of page view events enriched with running counts",
+          "A table with windowed keys containing pageId and window boundaries, with counts for each 1-hour window",
+          "A stream that emits updated page counts every hour"
+        ],
+        "answer": "A table with windowed keys containing pageId and window boundaries, with counts for each 1-hour window",
+        "explanation": "This ksqlDB query creates a windowed table (CREATE TABLE with WINDOW clause) that counts page views grouped by pageId in 1-hour tumbling windows. The result is a table where the key consists of both the pageId and window boundaries (start and end time), and the value contains the view_count for each window. As new page_views records arrive, they're assigned to the appropriate 1-hour window based on their timestamp, and the count for that pageId and window is updated. It's not an all-time count (option A) because of the windowing, not a stream of individual events (option B) because it's an aggregate table, and not a periodic emission (option D) because records are updated continuously as specified by EMIT CHANGES."
+      },
+      {
+        "id": 21,
+        "category": "KSQL/KStreams",
+        "question": "Consider the following Kafka Streams code:\n\n```java\nKStream<String, Order> orders = ...\nKTable<String, Customer> customers = ...\n\nKStream<String, EnrichedOrder> joined = orders.join(\n    customers,\n    (order, customer) -> new EnrichedOrder(order, customer)\n);\n```\n\nWhat condition must be true for this join to work correctly?",
+        "options": [
+          "The orders stream and customers table must use the same serialization format",
+          "The orders stream and customers table must have the same number of partitions",
+          "The message key in the orders stream must match the key in the customers table",
+          "The customers table must be entirely loaded into memory before joining"
+        ],
+        "answer": "The message key in the orders stream must match the key in the customers table",
+        "explanation": "For a join between a KStream (orders) and a KTable (customers) in Kafka Streams, the message key in the orders stream must match the key in the customers table for records to be joined. This join is essentially a lookup operation where each order is enriched with customer information based on matching keys. Additionally, the topics must be co-partitioned (same number of partitions and same partitioning strategy) so that records with the same key are in the same partition, but this is an underlying requirement not explicitly stated in the code. The serialization format is handled by serdes configurations and doesn't affect the join logic itself. The customers table doesn't need to be entirely loaded into memory; Kafka Streams manages state stores efficiently."
+      },
+      {
+        "id": 22,
+        "category": "Kafka Connect",
+        "question": "When configuring a JDBC Source Connector to incrementally load data from a relational database table, which of the following properties is essential for tracking the position in the table?",
+        "options": [
+          "connection.url",
+          "mode",
+          "incrementing.column.name",
+          "batch.size"
+        ],
+        "answer": "incrementing.column.name",
+        "explanation": "When configuring a JDBC Source Connector for incremental loading, the incrementing.column.name property is essential for tracking position in the table. This property specifies an autoincrementing column (like an ID) that the connector uses to identify new rows since the last poll. Each time the connector runs, it retrieves rows where this column's value is greater than the last seen value, allowing it to capture only new or updated data. While connection.url is required for connecting to the database, mode would specify the overall loading approach (e.g., bulk, incrementing, timestamp), and batch.size controls how many records are processed at once, none of these track the actual position in the table like incrementing.column.name does."
+      },
+      {
+        "id": 23,
+        "category": "Kafka Connect",
+        "question": "In Kafka Connect, what determines the maximum parallelism that can be achieved by a sink connector?",
+        "options": [
+          "The tasks.max configuration of the connector",
+          "The number of Kafka Connect worker nodes in the cluster",
+          "The number of partitions in the source topic",
+          "The number of available CPU cores on the worker nodes"
+        ],
+        "answer": "The number of partitions in the source topic",
+        "explanation": "In Kafka Connect, the maximum parallelism that can be achieved by a sink connector is determined by the number of partitions in the source topic. Each task processes a subset of partitions, and a partition cannot be split across multiple tasks. Therefore, even if tasks.max is set to a high value, the connector cannot use more tasks than there are partitions in the topic. The tasks.max configuration only sets an upper limit on the number of tasks, and the connector may use fewer tasks based on the available partitions. While the number of worker nodes and CPU cores affects the cluster's overall capacity, they don't directly limit a single connector's parallelism like the partition count does."
+      },
+      {
+        "id": 24,
+        "category": "Serialization",
+        "question": "A team needs to implement a custom serializer/deserializer for complex objects in their Kafka application. Which methods must they implement in a custom Serializer<T> class?",
+        "options": [
+          "serialize(String topic, T data) only",
+          "serialize(String topic, T data) and deserialize(String topic, byte[] data)",
+          "serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close()",
+          "serialize(String topic, Headers headers, T data) and toBytes(T data)"
+        ],
+        "answer": "serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close()",
+        "explanation": "A custom Serializer<T> class must implement three methods: serialize(String topic, T data), configure(Map<String, ?> configs, boolean isKey), and close(). The serialize method is the core method that converts the object to a byte array. The configure method initial"
+      }
+  
+      ]
+  }

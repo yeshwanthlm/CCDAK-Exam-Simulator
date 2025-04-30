@@ -1,0 +1,125 @@
+{
+  "domain": "Broker",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A Kafka cluster has 5 brokers. The topic 'transactions' has 20 partitions with a replication factor of 3. How many partition replicas in total will exist across the cluster for this topic?",
+      "options": [
+        "20",
+        "40",
+        "60",
+        "100"
+      ],
+      "answer": "60",
+      "explanation": "The total number of partition replicas across the cluster is calculated by multiplying the number of partitions by the replication factor. With 20 partitions and a replication factor of 3, there will be 20 * 3 = 60 partition replicas in total distributed across the 5 brokers in the cluster."
+    },
+    {
+      "id": 2,
+      "question": "A Kafka broker is configured with the following settings: log.retention.hours=72, log.retention.bytes=1073741824 (1GB). Based on these settings, when will log segments be eligible for deletion?",
+      "options": [
+        "When segments are older than 72 hours OR when the total size of all segments exceeds 1GB",
+        "When segments are older than 72 hours AND when the total size of all segments exceeds 1GB",
+        "When segments are older than 72 hours, regardless of size",
+        "When the total size of all segments exceeds 1GB, regardless of age"
+      ],
+      "answer": "When segments are older than 72 hours OR when the total size of all segments exceeds 1GB",
+      "explanation": "Kafka applies multiple retention policies (time-based and size-based) as an OR condition, not an AND condition. This means log segments will be eligible for deletion when either they are older than 72 hours OR when the total size of all segments exceeds 1GB, whichever happens first. This approach ensures that storage space is managed effectively while still allowing for time-based retention requirements."
+    },
+    {
+      "id": 3,
+      "question": "In a Kafka cluster with 5 brokers, what is the maximum number of brokers that can fail while still maintaining availability if a topic has a replication factor of 3 and min.insync.replicas=2?",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "answer": "1",
+      "explanation": "With a replication factor of 3 and min.insync.replicas=2, the cluster requires at least 2 replicas to be in-sync for each partition to accept writes. This means the cluster can tolerate at most 1 broker failure while still maintaining write availability. If 2 brokers fail, some partitions may have fewer than min.insync.replicas available replicas, causing writes to those partitions to fail."
+    },
+    {
+      "id": 4,
+      "question": "A Kafka cluster has broker.rack awareness configured. What is the primary benefit of this feature in terms of replica placement?",
+      "options": [
+        "It ensures that replicas are placed in different data centers for disaster recovery",
+        "It balances the leader partitions evenly across all available racks",
+        "It optimizes network traffic by placing consumers close to partition leaders",
+        "It distributes replicas across different racks to improve fault tolerance"
+      ],
+      "answer": "It distributes replicas across different racks to improve fault tolerance",
+      "explanation": "Kafka's broker.rack awareness feature ensures that replicas of the same partition are distributed across different racks (or fault domains like availability zones) whenever possible. This improves fault tolerance by reducing the risk of losing all replicas of a partition during a rack failure. When broker.rack is configured, Kafka's replica assignment algorithm tries to place replicas in different racks, which protects against rack-level failures such as power outages, network issues, or cooling problems."
+    },
+    {
+      "id": 5,
+      "question": "A Kafka topic with log.cleanup.policy=compact has a broker configuration of min.cleanable.dirty.ratio=0.5. What does this configuration mean?",
+      "options": [
+        "Compaction will occur when 50% of the records in a log segment have duplicate keys",
+        "Compaction will occur when 50% of the partitions in the topic have 'dirty' records",
+        "Compaction will run only after half of the retention period has elapsed",
+        "Compaction will occur when the ratio of bytes eligible for cleaning to total bytes exceeds 50%"
+      ],
+      "answer": "Compaction will occur when the ratio of bytes eligible for cleaning to total bytes exceeds 50%",
+      "explanation": "The min.cleanable.dirty.ratio configuration determines the threshold at which the log compaction process will be triggered. A value of 0.5 means that compaction will start when the ratio of bytes that are eligible for cleaning (i.e., bytes containing records with keys that have newer values later in the log) to the total bytes in the log segment exceeds 50%. This ratio helps optimize the compaction process by only compacting segments that have a substantial amount of data that can be removed, making the cleaning process more efficient."
+    },
+    {
+      "id": 6,
+      "question": "In a Kafka broker, what is the relationship between replica.fetch.max.bytes and message.max.bytes configurations?",
+      "options": [
+        "replica.fetch.max.bytes should be greater than or equal to message.max.bytes",
+        "replica.fetch.max.bytes should be less than message.max.bytes to save network bandwidth",
+        "They are unrelated as they control different aspects of Kafka",
+        "They must be set to the same value for consistent performance"
+      ],
+      "answer": "replica.fetch.max.bytes should be greater than or equal to message.max.bytes",
+      "explanation": "The replica.fetch.max.bytes configuration should be greater than or equal to message.max.bytes. This is because replica.fetch.max.bytes limits how much data a follower can fetch from a leader in a single request, while message.max.bytes limits the maximum size of a single message that can be produced. If replica.fetch.max.bytes is smaller than message.max.bytes, follower replicas might not be able to fetch larger messages, causing replication delays or failures. To ensure proper replication, replica.fetch.max.bytes should at least accommodate the largest possible message size."
+    },
+    {
+      "id": 7,
+      "question": "What would be the impact on a Kafka cluster if the socket.receive.buffer.bytes configuration is set too low?",
+      "options": [
+        "Broker CPU usage would increase due to processing smaller batches",
+        "Network throughput would decrease, potentially bottlenecking performance",
+        "Producers would be unable to send messages larger than this buffer size",
+        "The number of connections the broker can handle would decrease"
+      ],
+      "answer": "Network throughput would decrease, potentially bottlenecking performance",
+      "explanation": "If socket.receive.buffer.bytes is set too low, the TCP receive buffer size will be inadequate for high-throughput scenarios, resulting in decreased network performance. This configuration affects the TCP socket buffer used for network communications, and a smaller buffer can limit the effectiveness of TCP's flow control mechanisms, particularly in high-latency networks. The result would be reduced network throughput, which could become a bottleneck for overall cluster performance, especially in scenarios with high message volumes or larger message sizes."
+    },
+    {
+      "id": 8,
+      "question": "In a Kafka cluster, the Controller is responsible for which of the following tasks?",
+      "options": [
+        "Authenticating and authorizing client requests",
+        "Compressing messages before writing them to disk",
+        "Managing topic partition leader elections",
+        "Handling consumer group offset commitments"
+      ],
+      "answer": "Managing topic partition leader elections",
+      "explanation": "The Kafka Controller is responsible for managing topic partition leader elections. One broker in the cluster is elected as the Controller, and it is responsible for detecting broker failures and managing the leadership transitions for all the partitions previously led by the failed broker. The Controller maintains the authoritative mapping of partitions to broker leaders in ZooKeeper (or in the metadata quorum in KRaft mode). It does not handle client authentication, message compression, or consumer group offset commitments, which are managed by individual brokers."
+    },
+    {
+      "id": 9,
+      "question": "A Kafka broker is configured with num.network.threads=3 and num.io.threads=8. What are the implications of these settings?",
+      "options": [
+        "3 threads for accepting network connections and 8 threads for processing disk I/O",
+        "3 threads for processing requests and 8 threads for handling network connections",
+        "3 threads for client connections and 8 threads for processing requests once they've been accepted",
+        "3 threads for consumer requests and 8 threads for producer requests"
+      ],
+      "answer": "3 threads for accepting network connections and 8 threads for processing requests once they've been accepted",
+      "explanation": "In Kafka broker configuration, num.network.threads controls the number of threads used for accepting network connections and performing network I/O, while num.io.threads determines the number of threads used for processing requests, which includes both request processing and disk I/O. With num.network.threads=3, the broker uses 3 threads for accepting connections and reading/writing data over those connections. With num.io.threads=8, the broker uses 8 threads to process the requests after they've been read from the network. These threads handle the actual request processing logic and any associated disk operations."
+    },
+    {
+      "id": 10,
+      "question": "A Kafka cluster has auto.leader.rebalance.enable=true. What is the purpose of this configuration and what metrics should be monitored in relation to it?",
+      "options": [
+        "It automatically redistributes partitions based on disk usage; monitor disk utilization metrics",
+        "It periodically rebalances leadership across brokers for even load; monitor LeaderImbalancePerBrokerPercentage",
+        "It enables automatic consumer rebalancing; monitor consumer group lag metrics",
+        "It rebalances replicas across the cluster; monitor UnderReplicatedPartitions"
+      ],
+      "answer": "It periodically rebalances leadership across brokers for even load; monitor LeaderImbalancePerBrokerPercentage",
+      "explanation": "The auto.leader.rebalance.enable configuration, when set to true, enables automatic leader rebalancing across the brokers in a Kafka cluster. The controller periodically checks for leader imbalance (using leader.imbalance.check.interval.seconds) and triggers leader elections to redistribute leadership more evenly if the imbalance exceeds the threshold defined by leader.imbalance.per.broker.percentage. The key metric to monitor in relation to this feature is LeaderImbalancePerBrokerPercentage, which indicates the degree of leader imbalance in the cluster. This automatic rebalancing helps maintain even load distribution but can cause temporary performance impacts during leadership transitions."
+    }
+  ]
+}

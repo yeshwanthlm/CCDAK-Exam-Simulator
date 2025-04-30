@@ -1,0 +1,125 @@
+{
+  "domain": "Schema Registry",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A project team is planning to implement schema evolution for their Kafka topics using Confluent Schema Registry. They want to ensure that consumers using an older schema version can still read messages produced with newer schema versions. Which compatibility type should they set?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "NONE"
+      ],
+      "answer": "FORWARD",
+      "explanation": "FORWARD compatibility ensures that consumers using an older schema version can read data written with a newer schema. This is exactly what the team needs to ensure older consumers continue to work when schema changes occur. BACKWARD compatibility is the opposite, ensuring newer consumers can read data written with older schemas. FULL requires both BACKWARD and FORWARD compatibility, which may be too restrictive for some schema changes. NONE disables compatibility checking altogether."
+    },
+    {
+      "id": 2,
+      "question": "A team has implemented Avro schemas for their Kafka topics with Schema Registry. They need to make a schema change that removes a field. Which compatibility mode allows this change?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "Both BACKWARD and FORWARD"
+      ],
+      "answer": "BACKWARD",
+      "explanation": "BACKWARD compatibility allows removing fields, as it ensures that a newer consumer can still read data written with an older schema (which contained the now-removed field). FORWARD compatibility requires that an older consumer can read data written with a newer schema, which would not be possible if a field was removed since the older consumer would expect that field. FULL requires both BACKWARD and FORWARD compatibility, so it would not allow field removal."
+    },
+    {
+      "id": 3,
+      "question": "A development team wants to update an Avro schema by adding a new field without a default value. Which compatibility type would allow this change?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "NONE"
+      ],
+      "answer": "FORWARD",
+      "explanation": "Adding a field without a default value is a forward-compatible change. FORWARD compatibility allows older consumers (which don't expect this new field) to continue reading newer messages. BACKWARD compatibility would not allow this because newer consumers expecting the field would fail when reading older messages that don't have it. FULL compatibility, which requires both BACKWARD and FORWARD compatibility, would not allow this change because it's not backward compatible."
+    },
+    {
+      "id": 4,
+      "question": "An organization stores schemas in the Confluent Schema Registry. Where exactly are these schemas physically stored?",
+      "options": [
+        "In an embedded database within the Schema Registry service",
+        "In Zookeeper znodes",
+        "In the internal '_schemas' Kafka topic",
+        "In a distributed cache shared across Schema Registry instances"
+      ],
+      "answer": "In the internal '_schemas' Kafka topic",
+      "explanation": "The Confluent Schema Registry stores schemas in the internal '_schemas' Kafka topic, not in an embedded database or Zookeeper. This approach leverages Kafka's durability and replication features for schema storage, ensuring high availability and fault tolerance. The schema data is cached in memory by the Schema Registry service for performance, but the actual persistent storage is in the '_schemas' topic."
+    },
+    {
+      "id": 5,
+      "question": "A Kafka consumer using the Avro deserializer encounters a message with a schema ID that it doesn't recognize. What happens next?",
+      "options": [
+        "The consumer throws a SchemaNotFoundException and stops processing",
+        "The consumer skips the message and continues processing the next message",
+        "The consumer fetches the schema from the Schema Registry using the ID",
+        "The consumer falls back to using the latest compatible schema"
+      ],
+      "answer": "The consumer fetches the schema from the Schema Registry using the ID",
+      "explanation": "When a Kafka consumer using the Avro deserializer encounters a message with an unknown schema ID, it automatically fetches the schema from the Schema Registry using that ID. This on-demand schema retrieval allows consumers to handle messages with different schema versions without requiring restart or reconfiguration. Once fetched, the schema is typically cached by the consumer to avoid repeated lookups for the same schema ID."
+    },
+    {
+      "id": 6,
+      "question": "When using Avro with Schema Registry, what does the serialized message format contain to enable schema resolution?",
+      "options": [
+        "The full Avro schema embedded in each message",
+        "A unique schema ID that references the schema in the Registry",
+        "A hash of the schema for validation purposes",
+        "The schema name and version number"
+      ],
+      "answer": "A unique schema ID that references the schema in the Registry",
+      "explanation": "When using Avro with Schema Registry, the serialized message format includes a unique schema ID (typically a 4-byte integer) that references the schema in the Schema Registry, followed by the Avro-serialized data. This approach optimizes message size by not including the full schema in each message. When a consumer receives the message, it uses this schema ID to retrieve the full schema from the Schema Registry if it's not already cached, then uses that schema to deserialize the data."
+    },
+    {
+      "id": 7,
+      "question": "An application needs to implement an Avro schema that includes a timestamp field. What is the recommended way to represent a timestamp in Avro?",
+      "options": [
+        "Use a string field with a specific date-time format",
+        "Use a long field with a logical type of timestamp-millis or timestamp-micros",
+        "Use an Avro fixed type with 8 bytes",
+        "Use an Avro array of integers representing [year, month, day, hour, minute, second]"
+      ],
+      "answer": "Use a long field with a logical type of timestamp-millis or timestamp-micros",
+      "explanation": "The recommended way to represent a timestamp in Avro is to use a long field with a logical type of either timestamp-millis (milliseconds since epoch) or timestamp-micros (microseconds since epoch). This approach provides precise timestamp representation while maintaining compatibility with systems that don't support logical types (they'll just see a long integer). Using logical types allows Avro to provide semantic meaning to the underlying primitive types, enabling proper handling in languages with specific date-time types."
+    },
+    {
+      "id": 8,
+      "question": "A Kafka application using Schema Registry has multiple producers writing to the same topic with compatible schema versions. If a message fails schema validation, at what point in the message flow is this detected?",
+      "options": [
+        "When the producer tries to register the schema with the Registry",
+        "When the producer serializes the message but before sending it to Kafka",
+        "When the broker receives the message but before committing it to the log",
+        "When a consumer tries to deserialize the message"
+      ],
+      "answer": "When the producer serializes the message but before sending it to Kafka",
+      "explanation": "Schema validation occurs on the producer side during serialization, before the message is sent to Kafka. The KafkaAvroSerializer (or equivalent for other formats) validates the message against the schema and checks compatibility with the Schema Registry during serialization. If validation fails, the producer will receive an exception immediately, preventing invalid messages from ever reaching the Kafka cluster. This early validation ensures data integrity and prevents the propagation of incompatible data."
+    },
+    {
+      "id": 9,
+      "question": "A team is implementing a multi-datacenter Kafka deployment with Schema Registry. What's the recommended approach for Schema Registry in this environment?",
+      "options": [
+        "Use a single, globally accessible Schema Registry instance for all datacenters",
+        "Deploy independent Schema Registry instances in each datacenter with no replication",
+        "Implement master-slave replication between Schema Registry instances",
+        "Set up Schema Registry with cross-datacenter Kafka MirrorMaker replication"
+      ],
+      "answer": "Set up Schema Registry with cross-datacenter Kafka MirrorMaker replication",
+      "explanation": "For multi-datacenter Kafka deployments, the recommended approach for Schema Registry is to set up separate Schema Registry instances in each datacenter with replication of the internal '_schemas' topic between datacenters using Kafka MirrorMaker or Confluent Replicator. This configuration provides local access to schemas for performance while ensuring schema consistency across all datacenters. It also provides fault tolerance if one datacenter goes down. Primary-backup or active-passive configurations are also possible, but having actively replicated instances in each datacenter typically provides better performance and resilience."
+    },
+    {
+      "id": 10,
+      "question": "An application needs to evolve an Avro schema by changing a field's default value. How does this change affect compatibility?",
+      "options": [
+        "It's always a compatible change for both BACKWARD and FORWARD compatibility",
+        "It's compatible for BACKWARD but not for FORWARD compatibility",
+        "It's compatible for FORWARD but not for BACKWARD compatibility",
+        "It's never a compatible change and requires NONE compatibility mode"
+      ],
+      "answer": "It's always a compatible change for both BACKWARD and FORWARD compatibility",
+      "explanation": "Changing a field's default value in an Avro schema is always a compatible change for both BACKWARD and FORWARD compatibility. This is because default values are only used when a field is missing during deserialization. For BACKWARD compatibility, newer consumers can still read older data because the field's presence or absence is what matters, not its default value. For FORWARD compatibility, older consumers can still read newer data for the same reason. Since it satisfies both BACKWARD and FORWARD compatibility, it's also compatible with FULL compatibility mode."
+    }
+  ]
+}

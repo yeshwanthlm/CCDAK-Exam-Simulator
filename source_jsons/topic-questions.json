@@ -1,0 +1,125 @@
+{
+  "domain": "Topic",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What happens to key-based message ordering when the number of partitions in a Kafka topic is increased?",
+      "options": [
+        "Order is maintained for all keys as Kafka uses a consistent hashing algorithm",
+        "Order is maintained within each original partition, but new keys may be distributed differently",
+        "Order is disrupted as all messages, including existing ones, are redistributed across all partitions",
+        "New messages with the same key as existing messages may go to different partitions, potentially breaking ordering guarantees"
+      ],
+      "answer": "New messages with the same key as existing messages may go to different partitions, potentially breaking ordering guarantees",
+      "explanation": "When the number of partitions in a Kafka topic is increased, new messages with the same key as existing messages may be routed to different partitions, potentially breaking the ordering guarantees for messages with the same key. This happens because Kafka typically uses a hash of the key modulo the number of partitions to determine the partition assignment. When the partition count changes, this formula yields different results, potentially sending messages with the same key to different partitions. While existing messages remain in their original partitions, the guarantee that all messages with the same key will be in the same partition (and thus processed in order) no longer holds after partition count changes."
+    },
+    {
+      "id": 2,
+      "question": "When a Kafka topic is configured with log.cleanup.policy=compact, what happens to messages with the same key?",
+      "options": [
+        "The most recent message for each key is kept, and older messages with the same key may be removed",
+        "All messages with duplicate keys are removed, keeping only messages with unique keys",
+        "Messages with the same key are combined, with values being merged according to a specified function",
+        "Nothing special happens; compaction only removes messages based on age or log size"
+      ],
+      "answer": "The most recent message for each key is kept, and older messages with the same key may be removed",
+      "explanation": "When a Kafka topic is configured with log.cleanup.policy=compact, the log compaction process retains at least the last known value for each message key. This means that while older messages with the same key may be removed during compaction, the most recent message for each key is always preserved. This compaction strategy is useful for topics that represent the current state of entities (like database tables) where only the latest value per key is relevant. It's important to note that compaction is not immediate; it happens asynchronously based on various factors like the min.cleanable.dirty.ratio setting."
+    },
+    {
+      "id": 3,
+      "question": "What happens if a producer sends a message to a topic that doesn't exist, and the broker setting auto.create.topics.enable is set to true?",
+      "options": [
+        "The message is rejected with a TOPIC_NOT_FOUND error",
+        "The topic is automatically created with default settings for partition count and replication factor",
+        "The message is placed in a special __pending_messages topic until an admin creates the target topic",
+        "The broker forwards the message to a random existing topic as a fallback mechanism"
+      ],
+      "answer": "The topic is automatically created with default settings for partition count and replication factor",
+      "explanation": "When auto.create.topics.enable is set to true on a Kafka broker, a topic that doesn't exist will be automatically created when a producer attempts to send a message to it. The new topic will use the broker's default settings for partition count (num.partitions) and replication factor (default.replication.factor). While convenient for development, this auto-creation feature can be problematic in production environments where topics should be carefully planned with appropriate settings. For this reason, many production environments set auto.create.topics.enable to false and manage topics explicitly through administrative tools."
+    },
+    {
+      "id": 4,
+      "question": "What happens to a message in a Kafka topic when its retention period expires?",
+      "options": [
+        "The message is immediately deleted from all replicas",
+        "The message is marked for deletion but remains queryable until the next log segment roll",
+        "The message becomes unavailable for consumers but remains on disk until the log segment is deleted",
+        "The message is moved to a special archive topic with a longer retention period"
+      ],
+      "answer": "The message becomes unavailable for consumers but remains on disk until the log segment is deleted",
+      "explanation": "When a message's retention period expires in Kafka, it doesn't get immediately deleted on a per-message basis. Instead, Kafka manages retention at the log segment level. Messages become unavailable to consumers (as their offsets are no longer valid), but the actual physical deletion happens only when the entire log segment containing those messages becomes eligible for deletion. A segment becomes eligible when all messages in it have expired according to the retention policy. This segment-based approach is more efficient than deleting individual messages, as it avoids fragmentation and reduces the overhead of managing the log."
+    },
+    {
+      "id": 5,
+      "question": "What is the relationship between a Kafka topic's min.insync.replicas setting and the producer's acks=all configuration?",
+      "options": [
+        "They are unrelated; min.insync.replicas affects consumer behavior while acks affects producer behavior",
+        "Together they determine the durability guarantees: with acks=all, a write succeeds only if it's replicated to at least min.insync.replicas",
+        "min.insync.replicas overrides the acks setting, making acks=all behave like acks=1 when enough replicas are in sync",
+        "The acks=all setting changes dynamically based on the current number of in-sync replicas"
+      ],
+      "answer": "Together they determine the durability guarantees: with acks=all, a write succeeds only if it's replicated to at least min.insync.replicas",
+      "explanation": "The min.insync.replicas setting and the producer's acks=all configuration work together to provide data durability guarantees. When a producer uses acks=all, it requires acknowledgment from all in-sync replicas before considering a write successful. The min.insync.replicas setting specifies the minimum number of replicas that must acknowledge a write when acks=all is used. If fewer replicas are available than min.insync.replicas, the producer will receive a NotEnoughReplicas exception. This combination allows configuring a trade-off between durability and availability: a higher min.insync.replicas value provides stronger durability guarantees but might reduce availability during broker failures."
+    },
+    {
+      "id": 6,
+      "question": "What is the impact of changing a topic's compression.type setting from 'none' to 'snappy'?",
+      "options": [
+        "Existing messages are immediately recompressed using Snappy compression",
+        "New messages will be compressed on the broker side before being written to disk",
+        "Producers must be reconfigured to use Snappy compression when sending to this topic",
+        "Consumers will automatically decompress incoming messages, regardless of their client configuration"
+      ],
+      "answer": "New messages will be compressed on the broker side before being written to disk",
+      "explanation": "When a topic's compression.type setting is changed from 'none' to 'snappy', new messages will be compressed by the broker using Snappy compression before being written to disk, regardless of whether they were compressed by the producer. This broker-side compression occurs after messages arrive at the broker but before they're written to the log. Existing messages are not recompressed; they remain in their original format. Producers don't need to be reconfigured, though they can still use their own compression settings. Consumers will automatically decompress messages based on the compression information stored in the message headers, not based on topic configuration or client settings."
+    },
+    {
+      "id": 7,
+      "question": "What is the purpose of a tombstone message (a message with null value) in a compacted Kafka topic?",
+      "options": [
+        "To mark a partition as ready for deletion",
+        "To signal the end of a transaction in transactional messaging",
+        "To indicate that a key should be deleted from the final state of the compacted topic",
+        "To represent a missing value in a stream processing application"
+      ],
+      "answer": "To indicate that a key should be deleted from the final state of the compacted topic",
+      "explanation": "In a compacted Kafka topic, a tombstone message—which has a key but a null value—indicates that a key should be deleted from the final state of the compacted topic. When the log cleaner processes a segment containing a tombstone, it removes all previous messages with that key, and after a specified delete retention period (controlled by delete.retention.ms), it will remove the tombstone itself. This mechanism allows for explicit deletion of keys from a compacted topic, which is particularly useful for implementing event sourcing patterns or maintaining a compacted changelog that accurately reflects deletions in the source system."
+    },
+    {
+      "id": 8,
+      "question": "What happens if a topic with a replication factor of 3 has its min.insync.replicas set to 3, and one broker goes offline?",
+      "options": [
+        "The topic remains fully operational with two replicas handling all requests",
+        "The topic becomes read-only, allowing consumers to read but rejecting producer writes",
+        "The topic becomes completely unavailable for both reads and writes",
+        "The broker automatically reduces min.insync.replicas to 2 to maintain operability"
+      ],
+      "answer": "The topic becomes read-only, allowing consumers to read but rejecting producer writes",
+      "explanation": "When a topic has min.insync.replicas=3 and a replication factor of 3, all three replicas must be in-sync for producers with acks=all to successfully write to the topic. If one broker goes offline, reducing the available replicas to 2, producer writes with acks=all will be rejected with a NotEnoughReplicasException because the number of in-sync replicas (2) is less than min.insync.replicas (3). However, consumers can still read from the remaining replicas, as read operations don't depend on min.insync.replicas. This effectively makes the topic read-only until all replicas are back in-sync or until min.insync.replicas is manually reduced."
+    },
+    {
+      "id": 9,
+      "question": "How does Kafka's log compaction process handle deleting segments from compacted topics?",
+      "options": [
+        "Compacted topics don't delete segments based on time or size; segments are only compacted, never deleted",
+        "Compaction and deletion are mutually exclusive; a topic can have either compaction or deletion, not both",
+        "With cleanup.policy=compact,delete, segments are first compacted and then can be deleted based on retention settings",
+        "Segments are deleted only after all keys within them have a newer value in a more recent segment"
+      ],
+      "answer": "With cleanup.policy=compact,delete, segments are first compacted and then can be deleted based on retention settings",
+      "explanation": "Kafka allows combining compaction and deletion policies by setting cleanup.policy=compact,delete. With this configuration, segments are first compacted to remove older values of keys that have newer values. Then, the compacted segments can still be deleted based on time or size retention settings (like retention.ms or retention.bytes). This combination provides the benefits of compaction (keeping the latest value for each key) while still allowing old data to be completely removed to manage storage. Without the delete policy, compacted topics would continue to grow indefinitely as new keys are added, even though older values of existing keys would be removed during compaction."
+    },
+    {
+      "id": 10,
+      "question": "What happens when a message exceeds the topic's max.message.bytes configuration?",
+      "options": [
+        "The message is automatically split into smaller chunks by the broker",
+        "The message is accepted but a warning is logged in the broker's log",
+        "The producer receives a MessageTooLargeException and the message is rejected",
+        "The message is truncated to the maximum allowed size before being stored"
+      ],
+      "answer": "The producer receives a MessageTooLargeException and the message is rejected",
+      "explanation": "When a producer sends a message that exceeds the topic's max.message.bytes configuration, the broker rejects the message and the producer receives a MessageTooLargeException. The broker does not attempt to split the message, truncate it, or store it with a warning—it simply rejects it outright. This strict enforcement ensures that all messages in the topic remain within the configured size limits, which is important for predictable performance and resource usage. Producers need to handle this exception appropriately, either by breaking large messages into smaller ones before sending or by implementing retry logic with smaller message sizes."
+    }
+  ]
+}

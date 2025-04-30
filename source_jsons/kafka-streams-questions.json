@@ -1,0 +1,125 @@
+{
+  "domain": "Kafka Streams",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What determines the maximum parallelism for a Kafka Streams application?",
+      "options": [
+        "The number of cores on the machine running the application",
+        "The number of threads configured via the num.stream.threads property",
+        "The number of partitions in the input topic(s)",
+        "The number of instances of the application that are running"
+      ],
+      "answer": "The number of partitions in the input topic(s)",
+      "explanation": "The maximum parallelism for a Kafka Streams application is determined by the number of partitions in the input topic(s). Each partition can be processed by only one task at a time within a consumer group. While the num.stream.threads property affects how many threads are used within a single application instance and the number of application instances affects the total processing capacity, the hard limit on parallelism is set by the partition count. If you have more threads or instances than partitions, some will remain idle."
+    },
+    {
+      "id": 2,
+      "question": "What happens when a Kafka Streams application performs an operation that requires repartitioning?",
+      "options": [
+        "The application automatically increases the partition count of the input topic",
+        "The stream processing is paused until an administrator manually repartitions the topic",
+        "Data is written to an internal topic and then read back, creating two subtopologies",
+        "The Streams application throws an exception as repartitioning isn't supported"
+      ],
+      "answer": "Data is written to an internal topic and then read back, creating two subtopologies",
+      "explanation": "When a Kafka Streams operation requires repartitioning (such as join, groupBy, or aggregation with a different key), the data is written to an internal intermediate topic and then read back. This creates two separate subtopologies: one that processes the original data and writes to the internal topic with the new partitioning key, and another that reads from this internal topic and continues processing. The internal topic name is based on the application.id configuration. This approach allows Kafka Streams to handle repartitioning transparently while maintaining the exactly-once processing guarantees."
+    },
+    {
+      "id": 3,
+      "question": "Which of the following Kafka Streams operations does NOT trigger repartitioning?",
+      "options": [
+        "groupByKey()",
+        "join() between co-partitioned topics",
+        "groupBy()",
+        "selectKey()"
+      ],
+      "answer": "join() between co-partitioned topics",
+      "explanation": "A join() operation between co-partitioned topics (topics with the same number of partitions and the same partitioning strategy for keys) does not trigger repartitioning in Kafka Streams. Since the data with the same keys is already in the corresponding partitions in both topics, the join can be performed directly without reshuffling the data. In contrast, groupByKey() doesn't require repartitioning only if no key changing operation was performed before it. Both groupBy() and selectKey() involve changing the message key, which requires repartitioning to ensure that records with the same key go to the same partition."
+    },
+    {
+      "id": 4,
+      "question": "What is the difference between KTable and GlobalKTable in Kafka Streams?",
+      "options": [
+        "KTable processes all records, while GlobalKTable only processes the latest value for each key",
+        "KTable represents partitioned data, while GlobalKTable replicates the complete dataset to each instance",
+        "KTable is only available in the Processor API, while GlobalKTable is available in the DSL",
+        "KTable provides exactly-once processing, while GlobalKTable only provides at-least-once guarantees"
+      ],
+      "answer": "KTable represents partitioned data, while GlobalKTable replicates the complete dataset to each instance",
+      "explanation": "The key difference between KTable and GlobalKTable is how they distribute data across Kafka Streams instances. A KTable is partitioned, meaning each Streams instance only contains the data for the partitions it's processing. In contrast, a GlobalKTable replicates all data to every Streams instance, so each instance has a complete copy of the entire dataset. This makes GlobalKTable suitable for joins where data isn't co-partitioned, as it allows joining records with any key, not just those in the same partition. However, this comes at the cost of increased storage and network traffic."
+    },
+    {
+      "id": 5,
+      "question": "In the context of Kafka Streams, what is a tumbling window and how does it differ from a hopping window?",
+      "options": [
+        "Tumbling windows are fixed-size, non-overlapping windows, while hopping windows can overlap due to a specified 'advance interval'",
+        "Tumbling windows operate on event time, while hopping windows operate on processing time",
+        "Tumbling windows are for stateless operations, while hopping windows support stateful operations",
+        "Tumbling windows only capture the first event in the window, while hopping windows capture all events"
+      ],
+      "answer": "Tumbling windows are fixed-size, non-overlapping windows, while hopping windows can overlap due to a specified 'advance interval'",
+      "explanation": "In Kafka Streams, tumbling windows divide the stream into fixed-size, non-overlapping windows. Each event belongs to exactly one window. For example, with a 5-minute tumbling window, events from 10:00-10:05 go into one window, 10:05-10:10 into the next, and so on. In contrast, hopping windows are fixed-size windows that can overlap because they 'hop' forward by a specified advance interval that is smaller than the window size. For instance, with a 5-minute window and a 1-minute advance interval, windows would be 10:00-10:05, 10:01-10:06, 10:02-10:07, and so on, with events potentially belonging to multiple windows."
+    },
+    {
+      "id": 6,
+      "question": "Look at the following Kafka Streams code snippet:\n\nKStream<String, Long> counts = stream\n    .groupByKey()\n    .count()\n    .toStream();\n\nWhich of the following statements is correct about this code?",
+      "options": [
+        "It counts the number of records for each key, but requires repartitioning",
+        "It counts the number of records for each key without requiring repartitioning",
+        "It returns the count of all records in the stream, not per key",
+        "It will throw a compilation error because count() can't be used with groupByKey()"
+      ],
+      "answer": "It counts the number of records for each key without requiring repartitioning",
+      "explanation": "This code snippet counts the number of records for each key without requiring repartitioning. The groupByKey() operation groups records by their existing key without changing the key, so it doesn't require repartitioning (assuming no prior key-changing operations). Then count() creates a KTable that contains the count of records for each key. Finally, toStream() converts the KTable back to a KStream. This is an efficient way to count occurrences by key because it avoids the overhead of repartitioning that would be required if using groupBy() instead of groupByKey()."
+    },
+    {
+      "id": 7,
+      "question": "What is the purpose of the following Kafka Streams application code snippet?\n\nProperties props = new Properties();\nprops.put(StreamsConfig.APPLICATION_ID_CONFIG, \"windowed-aggregation\");\nprops.put(StreamsConfig.STATE_DIR_CONFIG, \"/tmp/kafka-streams\");\nprops.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, \"4\");\nprops.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, \"1000\");\nprops.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE_V2);\n",
+      "options": [
+        "Configuring a multi-threaded Kafka Streams application with exactly-once processing guarantees",
+        "Setting up a windowed aggregation topology with a 1-second window size",
+        "Creating a fault-tolerant application that commits state every second",
+        "Enabling parallel processing across 4 partitions with at-least-once delivery semantics"
+      ],
+      "answer": "Configuring a multi-threaded Kafka Streams application with exactly-once processing guarantees",
+      "explanation": "This code snippet configures a Kafka Streams application with several important properties: it sets the application ID to 'windowed-aggregation', specifies a local state directory for state stores, configures the application to use 4 stream threads for parallel processing, sets the commit interval to 1 second (how often the application commits its state), and most importantly, enables exactly-once processing guarantees with the EXACTLY_ONCE_V2 setting. This configuration creates a multi-threaded application that ensures each input record is processed exactly once, even in the face of failures, with state commits occurring every second."
+    },
+    {
+      "id": 8,
+      "question": "In a Kafka Streams application, what is the impact of configuring a state store with persistent=true vs. persistent=false?",
+      "options": [
+        "Persistent state stores are replicated across instances, while non-persistent stores are instance-local",
+        "Persistent state stores survive application restarts, while non-persistent stores are lost on restart",
+        "Persistent state stores use disk storage, while non-persistent stores use only memory",
+        "Persistent state stores use RocksDB, while non-persistent stores use in-memory hash tables"
+      ],
+      "answer": "Persistent state stores use disk storage, while non-persistent stores use only memory",
+      "explanation": "The persistent flag for state stores determines whether the store uses disk storage (persistent=true) or is entirely in-memory (persistent=false). Persistent state stores write their data to disk and are backed by a changelog topic in Kafka, allowing them to be restored after failures or during rebalancing. Non-persistent stores are purely in-memory and do not survive crashes, but they offer faster access since they avoid disk I/O. In Kafka Streams, persistent stores typically use RocksDB as the underlying storage engine, while non-persistent stores use in-memory hash maps, but this implementation detail is separate from the persistence property itself."
+    },
+    {
+      "id": 9,
+      "question": "What will the following Kafka Streams code produce?\n\nKStream<String, String> stream = builder.stream(\"input-topic\");\n\nKTable<String, Long> wordCounts = stream\n    .flatMapValues(value -> Arrays.asList(value.toLowerCase().split(\"\\\\s+\")))\n    .groupBy((key, word) -> word)\n    .count();\n\nwordCounts.toStream().to(\"output-topic\");",
+      "options": [
+        "A count of each input record, keyed by the original record key",
+        "A word count of all words across all records, with words as keys",
+        "A count of records containing each unique word, with words as keys",
+        "A stream of individual words with their original record keys"
+      ],
+      "answer": "A word count of all words across all records, with words as keys",
+      "explanation": "This Kafka Streams code implements a classic word count application. It reads from 'input-topic', splits each record value into words using whitespace as separators, groups the resulting words by the word itself (ignoring the original record key), counts occurrences of each word, and then writes the results to 'output-topic'. The output will be a stream of word-count pairs, where each word is the key and the count is the value. This requires repartitioning during the groupBy operation since the key is changed from the original record key to the word itself."
+    },
+    {
+      "id": 10,
+      "question": "Which of the following Kafka Streams topologies would require TWO repartitioning operations?",
+      "options": [
+        "stream.selectKey((k,v) -> v.getId()).join(otherStream, ...)",
+        "stream.groupBy((k,v) -> v.getCategory()).count()",
+        "stream.selectKey((k,v) -> v.getUserId()).groupBy((k,v) -> v.getDepartment()).aggregate(...)",
+        "stream.filter(v -> v > 10).map((k,v) -> KeyValue.pair(k, v*2))"
+      ],
+      "answer": "stream.selectKey((k,v) -> v.getUserId()).groupBy((k,v) -> v.getDepartment()).aggregate(...)",
+      "explanation": "The topology 'stream.selectKey((k,v) -> v.getUserId()).groupBy((k,v) -> v.getDepartment()).aggregate(...)' requires TWO repartitioning operations. First, selectKey() changes the key to userId, requiring repartitioning to ensure records with the same userId go to the same partition. Then, groupBy() changes the key again to department, requiring another repartitioning to ensure records with the same department go to the same partition. Each key-changing operation creates a separate repartitioning step, resulting in two internal changelog topics and a three-stage processing topology. In contrast, the other options require at most one repartitioning operation."
+    }
+  ]
+}

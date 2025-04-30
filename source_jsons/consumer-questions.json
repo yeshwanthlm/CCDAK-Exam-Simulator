@@ -1,0 +1,125 @@
+{
+  "domain": "Consumer",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A Kafka consumer is configured with isolation.level=read_committed. How does this affect message consumption?",
+      "options": [
+        "The consumer will only read records that have been committed using consumer.commitSync() or consumer.commitAsync()",
+        "The consumer will read all records but wait for them to be acknowledged by the broker before processing",
+        "The consumer will only read records that were produced as part of committed transactions or outside of transactions",
+        "The consumer will only read records after the committed offset stored in __consumer_offsets"
+      ],
+      "answer": "The consumer will only read records that were produced as part of committed transactions or outside of transactions",
+      "explanation": "When a consumer is configured with isolation.level=read_committed, it will only read records that were either produced outside of a transaction (non-transactional messages) or were produced as part of a transaction that was successfully committed. Records that are part of an ongoing transaction or part of an aborted transaction will not be visible to the consumer. This setting provides transaction isolation guarantees for consumers, ensuring they only see committed transactional data."
+    },
+    {
+      "id": 2,
+      "question": "A Kafka consumer application is processing records that take varying amounts of time. Occasionally, processing a batch of records takes longer than max.poll.interval.ms, causing the consumer to be marked as failed. What is the best approach to address this issue?",
+      "options": [
+        "Increase max.poll.interval.ms to accommodate the longest processing time",
+        "Decrease max.poll.records to reduce the batch size and processing time per poll",
+        "Implement multi-threading to process records in parallel while continuing to poll",
+        "Set enable.auto.commit=false and manually commit offsets after processing each record"
+      ],
+      "answer": "Decrease max.poll.records to reduce the batch size and processing time per poll",
+      "explanation": "When processing time can exceed max.poll.interval.ms, reducing max.poll.records is often the best solution. This decreases the number of records returned in each poll() call, thereby reducing the time needed to process each batch before calling poll() again. While increasing max.poll.interval.ms is an option, it's generally better to process smaller batches more frequently for better responsiveness and quicker rebalances. Multi-threading adds complexity and potential thread-safety issues. Manual committing doesn't address the core issue of long processing times between polls. By reducing max.poll.records, the consumer can process manageable chunks and call poll() frequently enough to maintain group membership."
+    },
+    {
+      "id": 3,
+      "question": "A Kafka consumer needs to read from a specific offset of a topic partition. Which method combination should be used to achieve this?",
+      "options": [
+        "subscribe() followed by seek()",
+        "assign() followed by seek()",
+        "subscribe() followed by poll() with specific offset parameters",
+        "assign() followed by position()"
+      ],
+      "answer": "assign() followed by seek()",
+      "explanation": "To read from a specific offset of a topic partition, a consumer should use assign() followed by seek(). The assign() method manually assigns specific topic partitions to the consumer, bypassing the consumer group's automatic partition assignment. After assignment, the seek() method positions the consumer at the desired offset within each assigned partition. This approach gives complete control over both which partitions to read from and at which offset to start reading. The other combinations don't provide this level of control: subscribe() works with consumer groups for automatic partition assignment, poll() doesn't accept offset parameters, and position() gets the current offset rather than setting it."
+    },
+    {
+      "id": 4,
+      "question": "A Kafka consumer group with 3 consumers is reading from a topic with 6 partitions. If a 4th consumer is added to the group, what will happen?",
+      "options": [
+        "The 4th consumer will remain idle as there are already enough consumers",
+        "Each consumer will now handle exactly 1.5 partitions",
+        "A rebalance will occur, and some partitions will be reassigned to the new consumer",
+        "The consumer group coordinator will reject the 4th consumer"
+      ],
+      "answer": "A rebalance will occur, and some partitions will be reassigned to the new consumer",
+      "explanation": "When a new consumer joins a consumer group, Kafka triggers a rebalance to redistribute partitions among all members, including the new one. In this case, with 6 partitions and 4 consumers after the new addition, some consumers will handle 1 partition and others will handle 2, depending on the partition assignment strategy. The exact assignment depends on factors like the partition assignment algorithm (e.g., Range, RoundRobin, or Sticky) and the order in which consumers joined. Kafka doesn't allow fractional partition assignments, and it won't reject the consumer or leave it idle as long as there are partitions that can be assigned to it."
+    },
+    {
+      "id": 5,
+      "question": "What will happen to a consumer group if one of its consumers fails to send heartbeats for longer than session.timeout.ms but continues to process records?",
+      "options": [
+        "The consumer will continue processing but won't commit any offsets",
+        "The consumer group coordinator will trigger a rebalance, and the consumer's partitions will be reassigned",
+        "The consumer will automatically reconnect and resume from where it left off",
+        "The consumer will be forced to stop processing by the broker"
+      ],
+      "answer": "The consumer group coordinator will trigger a rebalance, and the consumer's partitions will be reassigned",
+      "explanation": "If a consumer fails to send heartbeats for longer than session.timeout.ms, the consumer group coordinator will consider that consumer dead, even if it's still running and processing records. The coordinator will trigger a rebalance, removing the 'dead' consumer from the group and reassigning its partitions to other consumers in the group. If the consumer that missed heartbeats continues to process records, it will soon encounter a CommitFailedException or an IllegalStateException when trying to commit offsets or poll for new records, as it's no longer part of the consumer group. The consumer would need to rejoin the group to resume normal operation."
+    },
+    {
+      "id": 6,
+      "question": "With which partition assignment strategy will consumer group rebalancing have the least impact on already-assigned partitions?",
+      "options": [
+        "RangeAssignor",
+        "RoundRobinAssignor",
+        "StickyAssignor",
+        "CooperativeStickyAssignor"
+      ],
+      "answer": "CooperativeStickyAssignor",
+      "explanation": "The CooperativeStickyAssignor has the least impact on already-assigned partitions during rebalancing. It combines the benefits of the StickyAssignor (minimizing partition movement) with a cooperative rebalancing protocol that allows consumers to continue consuming from their unaffected partitions during rebalancing. Unlike the eager rebalancing protocol used by other assignors, which revokes all partitions before reassignment, the cooperative approach only revokes partitions that need to be reassigned. This minimizes disruption, reduces the amount of state that needs to be rebuilt, and allows for more continuous processing during rebalancing events, making it ideal for stateful applications."
+    },
+    {
+      "id": 7,
+      "question": "A Kafka consumer application needs to maintain custom state based on the messages it processes. If the consumer fails and restarts, what is the recommended approach to recover this state?",
+      "options": [
+        "Store the state in a local file and reload it on restart",
+        "Store the state in an external database for durability",
+        "Use Kafka Streams' state stores feature instead of a custom consumer",
+        "Reprocess all messages from the beginning of the topic to rebuild the state"
+      ],
+      "answer": "Use Kafka Streams' state stores feature instead of a custom consumer",
+      "explanation": "For maintaining and recovering custom state based on processed messages, using Kafka Streams' state stores feature is the recommended approach. Kafka Streams provides built-in state stores that are backed by changelog topics in Kafka, making them fault-tolerant and automatically recoverable after failures. State stores also support local caching for performance and can be queried by your application. This approach is significantly more robust than managing state in files or external databases, as the state recovery is handled automatically by the framework and tied directly to the processing position in the input stream. It also avoids the need to reprocess all messages, which would be inefficient for large topics."
+    },
+    {
+      "id": 8,
+      "question": "A Kafka consumer group encounters frequent rebalances despite no consumers joining or leaving. What is the most likely cause?",
+      "options": [
+        "Network issues causing consumers to miss broker responses",
+        "Consumers taking too long to process records between poll() calls",
+        "Too many consumers in the group for the available partitions",
+        "Broker-side group coordinator instability"
+      ],
+      "answer": "Consumers taking too long to process records between poll() calls",
+      "explanation": "The most likely cause of frequent rebalances without membership changes is consumers taking too long to process records between poll() calls. If processing time exceeds max.poll.interval.ms, consumers are considered failed by the consumer group coordinator, triggering a rebalance. This commonly happens when record processing is unexpectedly slow due to complex business logic, external system interactions, or processing spikes. To resolve this, either increase max.poll.interval.ms, decrease max.poll.records to process smaller batches, optimize the processing logic, or switch to an asynchronous processing model that separates polling from processing while maintaining regular poll calls."
+    },
+    {
+      "id": 9,
+      "question": "Which of the following statements about Kafka's consumer offset management is correct?",
+      "options": [
+        "Consumers must manually commit offsets; there is no automatic option",
+        "With enable.auto.commit=true, offsets are committed synchronously after each poll()",
+        "Offsets are stored in ZooKeeper in recent Kafka versions",
+        "Offsets are committed to the __consumer_offsets topic, keyed by consumer group ID, topic, and partition"
+      ],
+      "answer": "Offsets are committed to the __consumer_offsets topic, keyed by consumer group ID, topic, and partition",
+      "explanation": "Kafka stores consumer offsets in the internal __consumer_offsets topic, with records keyed by the combination of consumer group ID, topic, and partition. This design allows for scalable and durable offset storage within Kafka itself, eliminating the dependency on ZooKeeper for offset management (which was used in older versions). The other statements are incorrect: consumers can use auto-commit (enable.auto.commit=true) or manual commit, auto-commits happen asynchronously in the background at the interval specified by auto.commit.interval.ms (not synchronously after each poll), and modern Kafka versions don't use ZooKeeper for offset storage."
+    },
+    {
+      "id": 10,
+      "question": "What happens when a consumer with auto.offset.reset=earliest attempts to consume from a topic where all messages have expired due to the retention policy?",
+      "options": [
+        "The consumer starts at offset 0, which is now invalid, and throws an OffsetOutOfRangeException",
+        "The consumer starts at the earliest available offset in the topic",
+        "The consumer starts at the latest offset and waits for new messages",
+        "The consumer throws a TopicDeletedException since all data has been removed"
+      ],
+      "answer": "The consumer starts at the earliest available offset in the topic",
+      "explanation": "When a consumer with auto.offset.reset=earliest attempts to consume from a topic where all messages have expired due to the retention policy, it will start at the earliest available offset in the topic. The auto.offset.reset setting determines the behavior when no initial offset exists or the current offset is invalid (e.g., has been deleted). With 'earliest', the consumer begins from the earliest offset that still exists in the topic after any expired messages have been removed. It doesn't try to read from offset 0 if that's no longer available, nor does it jump to the latest offset. This behavior ensures the consumer reads all available historical data without failing, even if some data has been deleted due to retention policies."
+    }
+  ]
+}

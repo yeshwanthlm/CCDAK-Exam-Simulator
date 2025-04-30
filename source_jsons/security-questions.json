@@ -1,0 +1,125 @@
+{
+  "domain": "Security",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A Kafka cluster is configured with SSL encryption for client connections. Which configuration must be set on both the broker and client sides to enable this?",
+      "options": [
+        "security.protocol=SSL",
+        "ssl.truststore.location and ssl.keystore.location",
+        "listeners=SSL://hostname:port",
+        "sasl.mechanism=PLAIN and sasl.jaas.config"
+      ],
+      "answer": "security.protocol=SSL",
+      "explanation": "To enable SSL encryption for client connections, both the broker and client must set security.protocol=SSL. This configuration specifies that SSL/TLS encryption should be used for the connection. Additionally, both sides would need to configure SSL truststore and keystore information, but the security.protocol setting is the fundamental parameter that activates SSL encryption for the connection. Without this setting, the SSL configuration would be ignored even if the truststore and keystore configurations are present."
+    },
+    {
+      "id": 2,
+      "question": "Which authentication mechanism in Kafka provides integration with enterprise identity management systems via Kerberos?",
+      "options": [
+        "SASL/PLAIN",
+        "SASL/SCRAM",
+        "SASL/GSSAPI",
+        "SSL client certificates"
+      ],
+      "answer": "SASL/GSSAPI",
+      "explanation": "SASL/GSSAPI is the authentication mechanism in Kafka that provides integration with Kerberos, which is commonly used in enterprise identity management systems. GSSAPI (Generic Security Services API) is a standard interface for security services, and its most common implementation is Kerberos. This mechanism allows Kafka to leverage an existing Kerberos infrastructure for authenticating clients without maintaining separate credentials within Kafka. SASL/PLAIN uses username/password authentication, SASL/SCRAM provides stronger security for username/password, and SSL client certificates use X.509 certificates for authentication."
+    },
+    {
+      "id": 3,
+      "question": "What happens to Kafka's zero-copy optimization when SSL encryption is enabled?",
+      "options": [
+        "Zero-copy still works because SSL encryption happens at the network layer, not the application layer",
+        "Zero-copy is disabled because SSL requires data to be loaded into JVM memory for encryption/decryption",
+        "Zero-copy efficiency is reduced by 50% due to the overhead of encryption algorithms",
+        "Zero-copy works for producers but is disabled for consumers when SSL is enabled"
+      ],
+      "answer": "Zero-copy is disabled because SSL requires data to be loaded into JVM memory for encryption/decryption",
+      "explanation": "When SSL encryption is enabled in Kafka, the zero-copy optimization is disabled. Zero-copy optimization allows data to be transferred directly from disk to network buffers without copying it into application memory. However, with SSL encryption, data must be loaded into the JVM memory for encryption or decryption before being sent over the network or after being received. This additional memory copy eliminates the performance benefit of zero-copy. This is an important consideration when planning for performance in secure Kafka deployments, as it can impact throughput and latency."
+    },
+    {
+      "id": 4,
+      "question": "In a Kafka cluster with ACLs enabled, which of the following is required to allow a producer to write to a topic?",
+      "options": [
+        "Principal must have READ permission on the topic",
+        "Principal must have WRITE permission on the topic",
+        "Principal must have CREATE permission on the cluster",
+        "Principal must have ADMIN permission on the topic"
+      ],
+      "answer": "Principal must have WRITE permission on the topic",
+      "explanation": "To allow a producer to write to a topic in a Kafka cluster with ACLs enabled, the principal (user or client) must have WRITE permission on the topic. This permission specifically authorizes the production of messages to the topic. READ permission would be required for consumers to read from the topic, CREATE permission on the cluster would be needed to create new topics, and ADMIN permission would allow administrative operations like changing topic configurations. ACLs in Kafka follow a specific format: Principle P is [Allowed/Denied] Operation O on Resource R from Host H."
+    },
+    {
+      "id": 5,
+      "question": "Which configuration is required on Kafka brokers to enforce SSL client authentication (mutual TLS)?",
+      "options": [
+        "ssl.client.auth=required",
+        "security.inter.broker.protocol=SSL",
+        "ssl.secure.random.implementation=SHA1PRNG",
+        "ssl.endpoint.identification.algorithm=HTTPS"
+      ],
+      "answer": "ssl.client.auth=required",
+      "explanation": "To enforce SSL client authentication (mutual TLS) on Kafka brokers, the ssl.client.auth configuration must be set to 'required'. This setting makes the broker require clients to present a valid certificate during the SSL handshake process, effectively implementing two-way authentication. With this setting, both the broker authenticates itself to clients and clients authenticate themselves to the broker using certificates. The 'security.inter.broker.protocol=SSL' only configures broker-to-broker communication to use SSL, 'ssl.secure.random.implementation=SHA1PRNG' specifies a random number generator for SSL, and 'ssl.endpoint.identification.algorithm=HTTPS' enables hostname verification."
+    },
+    {
+      "id": 6,
+      "question": "What is the purpose of the 'ssl.endpoint.identification.algorithm' configuration in Kafka clients?",
+      "options": [
+        "It specifies which encryption algorithm to use for SSL connections",
+        "It configures how clients verify the hostname in the broker's certificate",
+        "It determines how clients identify themselves to brokers during SSL handshake",
+        "It sets the priority order for SSL cipher suites"
+      ],
+      "answer": "It configures how clients verify the hostname in the broker's certificate",
+      "explanation": "The 'ssl.endpoint.identification.algorithm' configuration in Kafka clients determines how clients verify the hostname in the broker's SSL certificate. When set to 'HTTPS' (the default in current versions), it enables hostname verification to prevent man-in-the-middle attacks by ensuring that the client is connecting to the intended server. The client verifies that the hostname it's connecting to matches the Common Name (CN) or Subject Alternative Name (SAN) in the broker's certificate. Setting this to an empty string disables hostname verification, which would be less secure but might be necessary in certain test environments or when using IP addresses instead of hostnames."
+    },
+    {
+      "id": 7,
+      "question": "When implementing authorization in Kafka, what is the relationship between ACLs and authorizers?",
+      "options": [
+        "ACLs define the permissions, while authorizers check if an action is allowed based on the ACLs",
+        "Authorizers define the permissions, while ACLs are used to authenticate the clients",
+        "ACLs handle client authentication, while authorizers handle message encryption",
+        "There is no relationship; ACLs and authorizers are used in different security mechanisms"
+      ],
+      "answer": "ACLs define the permissions, while authorizers check if an action is allowed based on the ACLs",
+      "explanation": "In Kafka's security model, ACLs (Access Control Lists) define the permissions that principals (users or clients) have on Kafka resources, while authorizers are the components that check if an action is allowed based on these ACLs. The authorizer is a pluggable component in Kafka that implements the Authorizer interface. The default implementation is AclAuthorizer, which reads ACLs from ZooKeeper (or the KRaft metadata) and uses them to make authorization decisions. Organizations can also implement custom authorizers to integrate with external authorization systems while keeping the same ACL structure."
+    },
+    {
+      "id": 8,
+      "question": "Which of the following commands correctly adds an ACL to allow a user to read from a consumer group?",
+      "options": [
+        "kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --consumer --group group1",
+        "kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --operation READ --group group1",
+        "kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --consumer --topic group1",
+        "kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --operation READ --group-resource group1"
+      ],
+      "answer": "kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --operation READ --group group1",
+      "explanation": "The correct command to add an ACL allowing a user to read from a consumer group is: kafka-acls.sh --bootstrap-server localhost:9092 --add --allow-principal User:user1 --operation READ --group group1. This command grants the READ operation permission on the consumer group 'group1' to the user 'user1'. The --operation READ specifies the permission being granted, and --group group1 identifies the consumer group resource. The other options are incorrect because they either use invalid flags (--consumer, --topic for groups, --group-resource) or incorrect combinations of options."
+    },
+    {
+      "id": 9,
+      "question": "In a Kafka cluster with multiple listener configurations, what does the 'listener.security.protocol.map' configuration specify?",
+      "options": [
+        "It maps listener names to security protocols (e.g., PLAINTEXT, SSL, SASL)",
+        "It maps security protocols to JAAS configuration files",
+        "It maps SSL certificates to specific listeners",
+        "It maps user principals to their allowed security protocols"
+      ],
+      "answer": "It maps listener names to security protocols (e.g., PLAINTEXT, SSL, SASL)",
+      "explanation": "The 'listener.security.protocol.map' configuration in Kafka maps listener names to security protocols. This allows a Kafka broker to expose multiple listeners with different security configurations. For example, a broker might have an internal listener using PLAINTEXT for fast communication within a secure network, and an external listener using SSL or SASL_SSL for secure communication with clients outside the network. A typical configuration might look like: 'INTERNAL:PLAINTEXT,EXTERNAL:SSL'. This mapping works in conjunction with the 'listeners' and 'advertised.listeners' configurations to define the complete listener setup."
+    },
+    {
+      "id": 10,
+      "question": "Which approach provides the most secure configuration for inter-broker communication in a Kafka cluster?",
+      "options": [
+        "Configure security.inter.broker.protocol=PLAINTEXT for performance, and rely on network-level security",
+        "Configure security.inter.broker.protocol=SSL and enable mutual TLS authentication between brokers",
+        "Configure security.inter.broker.protocol=SASL_PLAINTEXT with a simple username/password",
+        "Configure SSL for client-broker communication, but use PLAINTEXT for inter-broker traffic"
+      ],
+      "answer": "Configure security.inter.broker.protocol=SSL and enable mutual TLS authentication between brokers",
+      "explanation": "The most secure configuration for inter-broker communication is to configure security.inter.broker.protocol=SSL and enable mutual TLS authentication between brokers. This ensures that all broker-to-broker communication is encrypted and that each broker authenticates itself to other brokers using certificates. Mutual TLS provides both encryption and strong authentication. Using PLAINTEXT, even with network-level security, leaves the traffic unencrypted. SASL_PLAINTEXT provides authentication but not encryption. Securing only client-broker communication while leaving inter-broker traffic unencrypted creates a significant security vulnerability, as sensitive data would still be exposed between brokers."
+    }
+  ]
+}

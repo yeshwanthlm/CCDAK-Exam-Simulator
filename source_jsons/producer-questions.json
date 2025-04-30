@@ -1,0 +1,125 @@
+{
+  "domain": "Producer",
+  "questions": [
+    {
+      "id": 1,
+      "question": "A Kafka producer is configured with acks=all, but messages are being rejected with NotEnoughReplicasException. What is the most likely cause?",
+      "options": [
+        "The producer's batch.size is larger than the broker's message.max.bytes",
+        "The number of available in-sync replicas is less than min.insync.replicas",
+        "The producer's linger.ms setting is too high, causing message expiration",
+        "The producer's buffer.memory is insufficient to handle the message volume"
+      ],
+      "answer": "The number of available in-sync replicas is less than min.insync.replicas",
+      "explanation": "When a producer is configured with acks=all, it requires acknowledgment from all in-sync replicas (ISRs) for a message to be considered successfully written. If the number of available ISRs falls below the min.insync.replicas setting (a broker/topic configuration), the broker will reject produce requests with a NotEnoughReplicasException. This typically happens when brokers hosting replicas have failed, causing the number of available ISRs to decrease below the configured minimum."
+    },
+    {
+      "id": 2,
+      "question": "Which combination of Kafka producer configurations would provide the highest throughput with the lowest reliability guarantees?",
+      "options": [
+        "acks=all, compression.type=none, batch.size=16384",
+        "acks=1, compression.type=lz4, batch.size=65536",
+        "acks=0, compression.type=snappy, batch.size=131072, linger.ms=100",
+        "acks=all, compression.type=gzip, batch.size=32768, retries=5"
+      ],
+      "answer": "acks=0, compression.type=snappy, batch.size=131072, linger.ms=100",
+      "explanation": "The combination 'acks=0, compression.type=snappy, batch.size=131072, linger.ms=100' provides the highest throughput with lowest reliability. Setting acks=0 means the producer doesn't wait for any acknowledgment from the broker, dramatically increasing throughput at the cost of potential data loss. The large batch.size (131072) allows more messages per request, while linger.ms=100 gives time for batches to fill before sending. Snappy compression offers a good balance between compression ratio and CPU usage. This configuration maximizes throughput by minimizing waiting and maximizing batch efficiency, but sacrifices reliability guarantees."
+    },
+    {
+      "id": 3,
+      "question": "A producer application is experiencing frequent TimeoutExceptions when sending messages. The producer is configured with delivery.timeout.ms=120000, request.timeout.ms=30000, and retries=3. What is the most likely cause?",
+      "options": [
+        "The broker is taking longer than 30000ms to respond to requests",
+        "The producer's retry backoff is too aggressive",
+        "The number of retries is insufficient to handle network issues",
+        "The delivery.timeout.ms is too short relative to request.timeout.ms and retries"
+      ],
+      "answer": "The broker is taking longer than 30000ms to respond to requests",
+      "explanation": "The most likely cause is that the broker is taking longer than 30000ms (the request.timeout.ms setting) to respond to requests. The request.timeout.ms configuration controls how long the producer will wait for a response after sending a request. If the broker doesn't respond within this time, the request times out and may be retried based on the retries setting. If the broker consistently takes longer than 30000ms to respond (perhaps due to high load, resource constraints, or network issues), the producer will experience TimeoutExceptions even with retries, as each retry would also time out."
+    },
+    {
+      "id": 4,
+      "question": "What is the impact on message ordering when a Kafka producer has max.in.flight.requests.per.connection=5, retries=3, and enable.idempotence=false?",
+      "options": [
+        "Message ordering is guaranteed for all messages sent by the producer",
+        "Message ordering is only guaranteed within each partition",
+        "Message ordering may be lost if some messages fail and are retried",
+        "Message ordering is never guaranteed regardless of configuration"
+      ],
+      "answer": "Message ordering may be lost if some messages fail and are retried",
+      "explanation": "With max.in.flight.requests.per.connection=5, retries=3, and enable.idempotence=false, message ordering may be lost if some messages fail and are retried. This happens because the producer can have multiple requests in flight simultaneously (up to 5 in this case). If an earlier request fails and is retried while later requests succeed, the retried messages may end up being written to the partition after the later messages, disrupting the original order. To maintain ordering with retries, either set max.in.flight.requests.per.connection=1 (which limits throughput) or enable idempotence (enable.idempotence=true), which automatically ensures ordering even with multiple in-flight requests."
+    },
+    {
+      "id": 5,
+      "question": "A Kafka producer is configured with enable.idempotence=true. What additional configurations are automatically adjusted to ensure exactly-once semantics?",
+      "options": [
+        "retries=Integer.MAX_VALUE, max.in.flight.requests.per.connection=1, acks=all",
+        "retries=5, max.in.flight.requests.per.connection=5, acks=all",
+        "retries=Integer.MAX_VALUE, max.in.flight.requests.per.connection≤5, acks=all",
+        "No additional configurations are adjusted automatically"
+      ],
+      "answer": "retries=Integer.MAX_VALUE, max.in.flight.requests.per.connection≤5, acks=all",
+      "explanation": "When enable.idempotence=true is set, Kafka automatically adjusts several configurations to ensure exactly-once semantics: retries is set to Integer.MAX_VALUE to ensure retrying until success or timeout, max.in.flight.requests.per.connection is capped at 5 (if it was set higher, it's reduced to 5; if it was already ≤5, it's left unchanged), and acks is set to 'all' to ensure all replicas acknowledge the write. These settings work together to prevent duplicates and maintain order while still allowing for reasonable performance. The producer uses sequence numbers and the broker tracks them to achieve idempotence."
+    },
+    {
+      "id": 6,
+      "question": "In a Kafka producer with compression.type=lz4, at what point in the message flow does compression occur?",
+      "options": [
+        "During serialization of individual records",
+        "After serialization but before batching",
+        "After batching but before sending to the broker",
+        "At the broker level before writing to disk"
+      ],
+      "answer": "After batching but before sending to the broker",
+      "explanation": "In a Kafka producer with compression enabled, compression occurs after batching but before sending to the broker. The producer first serializes individual records, then collects them into batches according to topic-partition. Once a batch is ready to be sent (due to batch.size being reached, linger.ms timeout occurring, or flush() being called), the entire batch is compressed as a unit before transmission. Compressing the entire batch rather than individual records is more efficient, as compression algorithms generally perform better with larger amounts of data. The compressed batch is sent to the broker and remains compressed when written to disk, only being decompressed when consumed."
+    },
+    {
+      "id": 7,
+      "question": "A Kafka producer needs to ensure messages are evenly distributed across all partitions of a topic, regardless of key. Which partitioner implementation should be used?",
+      "options": [
+        "DefaultPartitioner",
+        "RoundRobinPartitioner",
+        "UniformStickyPartitioner",
+        "RandomPartitioner"
+      ],
+      "answer": "RoundRobinPartitioner",
+      "explanation": "For evenly distributing messages across all partitions regardless of key, the RoundRobinPartitioner should be used. This partitioner assigns partitions in a round-robin fashion, regardless of message keys, ensuring an even distribution. The DefaultPartitioner uses a hash of the key (if present) or a sticky partition strategy for null keys, which doesn't guarantee even distribution. The UniformStickyPartitioner isn't a standard Kafka partitioner. A RandomPartitioner (if implemented) would distribute randomly, which is less predictable and may not distribute as evenly over small sample sizes as a round-robin approach."
+    },
+    {
+      "id": 8,
+      "question": "A Kafka producer is sending messages with string keys \"user-1\", \"user-2\", etc. The target topic has 8 partitions. After sending a large number of messages, it's observed that they're unevenly distributed across partitions. What is the most likely cause?",
+      "options": [
+        "The broker's message distribution algorithm is malfunctioning",
+        "The hash function used by the DefaultPartitioner has collisions",
+        "The producer's max.in.flight.requests.per.connection is set too high",
+        "The producer's batch.size is too small"
+      ],
+      "answer": "The hash function used by the DefaultPartitioner has collisions",
+      "explanation": "The most likely cause of uneven distribution is collisions in the hash function used by the DefaultPartitioner. The DefaultPartitioner determines the partition for a message with a key by computing hash(key) % numPartitions. If certain keys hash to the same values, they'll be assigned to the same partition, causing uneven distribution. This is particularly common with keys that have similar patterns (like \"user-1\", \"user-2\"). To address this, you could implement a custom partitioner with a better hash function for your key pattern, or use a different key format that produces a more uniform hash distribution."
+    },
+    {
+      "id": 9,
+      "question": "A producer application is experiencing OutOfMemoryError exceptions. Which Kafka producer configuration is most relevant to investigate?",
+      "options": [
+        "batch.size",
+        "linger.ms",
+        "buffer.memory",
+        "request.timeout.ms"
+      ],
+      "answer": "buffer.memory",
+      "explanation": "When a producer application is experiencing OutOfMemoryError exceptions, the buffer.memory configuration is most relevant to investigate. This setting controls the total amount of memory the producer can use to buffer records waiting to be sent to the server. If the producer is generating messages faster than they can be sent to the broker (due to network issues, broker slowness, or high message volume), the buffer can fill up, potentially leading to OutOfMemoryError if buffer.memory is insufficiently sized. Increasing buffer.memory might help, but you should also investigate why messages aren't being sent quickly enough, possibly by adjusting other settings like batch.size or addressing broker performance issues."
+    },
+    {
+      "id": 10,
+      "question": "What is the impact of setting linger.ms=50 on a Kafka producer application?",
+      "options": [
+        "The producer will wait up to 50ms for a response from the broker",
+        "The producer will retry failed messages for up to 50ms",
+        "The producer will delay sending messages by up to 50ms to allow more messages in a batch",
+        "The producer will wait 50ms between consecutive send operations"
+      ],
+      "answer": "The producer will delay sending messages by up to 50ms to allow more messages in a batch",
+      "explanation": "Setting linger.ms=50 means the producer will delay sending messages by up to 50ms to allow more messages to accumulate in a batch. This increases the likelihood of filling batches, which improves compression efficiency and reduces the number of requests sent to the broker, potentially increasing throughput at the cost of slightly higher latency. If a batch becomes full before the linger.ms timeout, it will be sent immediately. This setting is particularly useful in high-throughput scenarios where the small added latency is acceptable in exchange for better efficiency and resource utilization."
+    }
+  ]
+}

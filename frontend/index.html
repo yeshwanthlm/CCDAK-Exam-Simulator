@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam System</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #11846d;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: var(--light-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-error {
+            background-color: var(--error-color);
+        }
+        
+        .btn-error:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-info {
+            background-color: var(--info-color);
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        
+        .option {
+            display: block;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background-color: #f1f3f5;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .option.selected {
+            background-color: #cfe2ff;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .option.correct {
+            background-color: #d4edda;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .explanation {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            border-left: 4px solid var(--info-color);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .results {
+            text-align: center;
+        }
+        
+        .results .score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        
+        .checkbox-group {
+            margin: 1rem 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        
+        .domain-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .domain-option input {
+            margin-right: 0.5rem;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            gap: 1rem;
+        }
+        
+        .stat-box {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .stat-box .number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-box .label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Exam System</h1>
+    </header>
+    
+    <div class="container">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="card">
+            <h2>Exam Setup</h2>
+            <div class="form-group">
+                <label for="question-count">Number of Questions:</label>
+                <input type="number" id="question-count" min="1" max="100" value="10">
+            </div>
+            
+            <div class="form-group">
+                <label>Available Domains:</label>
+                <div id="domains-list" class="checkbox-group">
+                    <!-- Domains will be loaded here -->
+                    <p>Loading domains...</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="randomize" checked>
+                    Randomize Questions
+                </label>
+            </div>
+            
+            <button id="start-exam" class="btn btn-success">Start Exam</button>
+            <button id="reload-questions" class="btn btn-info">Reload Question Files</button>
+        </div>
+        
+        <!-- Exam Screen -->
+        <div id="exam-screen" class="hidden">
+            <div class="progress-bar">
+                <div id="progress" class="progress" style="width: 0%"></div>
+            </div>
+            
+            <div id="question-card" class="card">
+                <h3 id="question-number">Question 1</h3>
+                <p id="question-text">Question text will appear here</p>
+                
+                <div id="options-container">
+                    <!-- Options will be loaded here -->
+                </div>
+                
+                <div id="feedback" class="hidden">
+                    <div id="result-message"></div>
+                    <div id="explanation" class="explanation"></div>
+                </div>
+                
+                <div class="actions">
+                    <button id="submit-answer" class="btn">Submit Answer</button>
+                    <button id="next-question" class="btn" disabled>Next Question</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <div class="card results">
+                <h2>Exam Results</h2>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="number" id="correct-count">0</div>
+                        <div class="label">Correct</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="incorrect-count">0</div>
+                        <div class="label">Incorrect</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="score-percent">0%</div>
+                        <div class="label">Score</div>
+                    </div>
+                </div>
+                
+                <button id="restart-exam" class="btn btn-success">Start New Exam</button>
+                <button id="back-to-setup" class="btn">Change Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API configuration - Dynamic backend URL detection
+        function getBackendUrl() {
+            // If running on the same machine (localhost), use the same hostname but different port
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return `http://${window.location.hostname}:8001`;
+            }
+            
+            // Otherwise, when accessed from another device (e.g., mobile phone)
+            // Use the same hostname as the frontend but with port 8001
+            return `http://${window.location.hostname}:8001`;
+        }
+        
+        const API_BASE_URL = getBackendUrl();
+        console.log("Using backend URL:", API_BASE_URL);
+        
+        // Application state
+        let state = {
+            domains: [],
+            currentExam: {
+                questions: [],
+                currentQuestionIndex: 0,
+                answers: [],
+                selectedOptionIndex: undefined
+            }
+        };
+        
+        // DOM Elements
+        const setupScreen = document.getElementById('setup-screen');
+        const examScreen = document.getElementById('exam-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const domainsList = document.getElementById('domains-list');
+        const questionCount = document.getElementById('question-count');
+        const randomizeCheckbox = document.getElementById('randomize');
+        const startExamButton = document.getElementById('start-exam');
+        const reloadQuestionsButton = document.getElementById('reload-questions');
+        const questionCard = document.getElementById('question-card');
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const submitAnswerButton = document.getElementById('submit-answer');
+        const nextQuestionButton = document.getElementById('next-question');
+        const progressBar = document.getElementById('progress');
+        const feedback = document.getElementById('feedback');
+        const resultMessage = document.getElementById('result-message');
+        const explanation = document.getElementById('explanation');
+        const correctCount = document.getElementById('correct-count');
+        const incorrectCount = document.getElementById('incorrect-count');
+        const scorePercent = document.getElementById('score-percent');
+        const restartExamButton = document.getElementById('restart-exam');
+        const backToSetupButton = document.getElementById('back-to-setup');
+        
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchDomains();
+            setupEventListeners();
+        });
+        
+        // Fetch available domains
+        async function fetchDomains() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/domains`);
+                const data = await response.json();
+                state.domains = data.domains;
+                renderDomainsList();
+            } catch (error) {
+                console.error('Error fetching domains:', error);
+                domainsList.innerHTML = `<p class="error">Error loading domains. Please check if the backend is running.</p>`;
+            }
+        }
+        
+        // Render domains list with checkboxes
+        function renderDomainsList() {
+            if (state.domains.length === 0) {
+                domainsList.innerHTML = `
+                    <p>No domains available. Add JSON files to the <strong>source_jsons</strong> folder.</p>
+                    <p>Each JSON file should have the format:</p>
+                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">
+                    {
+                    "domain": "YourDomain",
+                    "questions": [
+                        {
+                        "id": 1,
+                        "question": "Your question text?",
+                        "options": ["Option A", "Option B", "Option C", "Option D"],
+                        "answer": "Option B",
+                        "explanation": "Explanation text"
+                        },
+                        ...
+                    ]
+                    }</pre>
+                                        <p>Try clicking the "Reload Question Files" button after adding files.</p>
+                                    `;
+                return;
+            }
+            
+            domainsList.innerHTML = state.domains.map(domain => `
+                <div class="domain-option">
+                    <input type="checkbox" id="domain-${domain}" value="${domain}" checked>
+                    <label for="domain-${domain}">${domain}</label>
+                </div>
+            `).join('');
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Start Exam button
+            startExamButton.addEventListener('click', startExam);
+            
+            // Reload Questions button
+            reloadQuestionsButton.addEventListener('click', reloadQuestions);
+            
+            // Submit Answer button
+            submitAnswerButton.addEventListener('click', submitAnswer);
+            
+            // Next Question button
+            nextQuestionButton.addEventListener('click', nextQuestion);
+            
+            // Restart Exam button
+            restartExamButton.addEventListener('click', () => {
+                resultsScreen.classList.add('hidden');
+                setupScreen.classList.remove('hidden');
+            });
+            
+            // Back to Setup button
+            backToSetupButton.addEventListener('click', () => {
+                resultsScreen.classList.add('hidden');
+                setupScreen.classList.remove('hidden');
+            });
+        }
+        
+        // Reload questions from backend
+        async function reloadQuestions() {
+            try {
+                reloadQuestionsButton.disabled = true;
+                reloadQuestionsButton.textContent = 'Reloading...';
+                
+                const response = await fetch(`${API_BASE_URL}/reload`);
+                const data = await response.json();
+                
+                state.domains = data.domains;
+                renderDomainsList();
+                
+                alert(`Questions reloaded successfully. Found ${state.domains.length} domains.`);
+            } catch (error) {
+                console.error('Error reloading questions:', error);
+                alert('Error reloading questions. Check the console and backend server.');
+            } finally {
+                reloadQuestionsButton.disabled = false;
+                reloadQuestionsButton.textContent = 'Reload Question Files';
+            }
+        }
+        
+        // Start the exam
+        async function startExam() {
+            // Get selected domains
+            const selectedDomains = Array.from(document.querySelectorAll('#domains-list input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            // Validate input
+            if (selectedDomains.length === 0) {
+                alert('Please select at least one domain.');
+                return;
+            }
+            
+            const count = parseInt(questionCount.value);
+            if (isNaN(count) || count < 1) {
+                alert('Please enter a valid number of questions.');
+                return;
+            }
+            
+            // Prepare exam config
+            const examConfig = {
+                domains: selectedDomains,
+                question_count: count,
+                randomize: randomizeCheckbox.checked
+            };
+            
+            try {
+                startExamButton.disabled = true;
+                startExamButton.textContent = 'Loading...';
+                
+                // Fetch questions from API
+                const response = await fetch(`${API_BASE_URL}/exam`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(examConfig)
+                });
+                
+                const data = await response.json();
+                
+                if (data.questions.length === 0) {
+                    alert('No questions available for the selected domains.');
+                    startExamButton.disabled = false;
+                    startExamButton.textContent = 'Start Exam';
+                    return;
+                }
+                
+                // Initialize exam state
+                state.currentExam = {
+                    questions: data.questions,
+                    currentQuestionIndex: 0,
+                    answers: [],
+                    selectedOptionIndex: undefined
+                };
+                
+                // Show exam screen
+                setupScreen.classList.add('hidden');
+                examScreen.classList.remove('hidden');
+                
+                // Load first question
+                loadQuestion();
+            } catch (error) {
+                console.error('Error starting exam:', error);
+                alert('Error starting exam. Check the console and backend server.');
+                startExamButton.disabled = false;
+                startExamButton.textContent = 'Start Exam';
+            }
+        }
+        
+        // Load current question
+        function loadQuestion() {
+            const { questions, currentQuestionIndex } = state.currentExam;
+            const question = questions[currentQuestionIndex];
+            
+            // Reset state
+            state.currentExam.selectedOptionIndex = undefined;
+            feedback.classList.add('hidden');
+            submitAnswerButton.disabled = false;
+            nextQuestionButton.disabled = true;
+            
+            // Update question text
+            questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            questionText.textContent = question.question;
+            
+            // Update progress bar
+            const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            
+            // Clear options container
+            optionsContainer.innerHTML = '';
+            
+            // Create option elements programmatically instead of using HTML string interpolation
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                
+                // Use dataset to store index instead of full text
+                optionElement.dataset.optionIndex = index;
+                
+                // Add click event listener
+                optionElement.addEventListener('click', () => {
+                    // Remove selected class from all options
+                    document.querySelectorAll('.option').forEach(opt => 
+                        opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    optionElement.classList.add('selected');
+                    
+                    // Store the selected option using index rather than text
+                    state.currentExam.selectedOptionIndex = index;
+                });
+                
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+        
+        // Submit answer
+        async function submitAnswer() {
+            const { questions, currentQuestionIndex, selectedOptionIndex } = state.currentExam;
+            const question = questions[currentQuestionIndex];
+            
+            // Validate selection
+            if (selectedOptionIndex === undefined) {
+                alert('Please select an answer.');
+                return;
+            }
+            
+            // Get the selected option text from the questions array using the stored index
+            const selectedOption = question.options[selectedOptionIndex];
+            
+            try {
+                submitAnswerButton.disabled = true;
+                submitAnswerButton.textContent = 'Checking...';
+                
+                // Send answer to API
+                const response = await fetch(`${API_BASE_URL}/check-answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question_id: question.id,
+                        domain: question.domain,
+                        selected_option: selectedOption
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // Save answer result
+                state.currentExam.answers.push({
+                    questionId: question.id,
+                    selectedOption,
+                    isCorrect: result.is_correct,
+                    correctAnswer: result.correct_answer,
+                    explanation: result.explanation
+                });
+                
+                // Show feedback
+                showFeedback(result);
+                
+                // Enable next button
+                nextQuestionButton.disabled = false;
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                alert('Error submitting answer. Check the console and backend server.');
+            } finally {
+                submitAnswerButton.disabled = false;
+                submitAnswerButton.textContent = 'Submit Answer';
+            }
+        }
+        
+        // Show feedback for the answer
+        function showFeedback(result) {
+            const { is_correct, correct_answer, explanation: explanationText } = result;
+            
+            // Find all option elements
+            const optionElements = document.querySelectorAll('.option');
+            
+            // Find the selected option element
+            const selectedOptionElement = document.querySelector('.option.selected');
+            
+            // Find the correct option element by comparing text content
+            let correctOptionElement = null;
+            optionElements.forEach(optEl => {
+                if (optEl.textContent === correct_answer) {
+                    correctOptionElement = optEl;
+                }
+            });
+            
+            // Reset classes
+            optionElements.forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+            
+            // Apply correct/incorrect classes
+            if (is_correct) {
+                selectedOptionElement.classList.add('correct');
+                resultMessage.innerHTML = '<p style="color: var(--success-color); font-weight: bold;">✓ Correct Answer!</p>';
+            } else {
+                selectedOptionElement.classList.add('incorrect');
+                if (correctOptionElement) {
+                    correctOptionElement.classList.add('correct');
+                }
+                resultMessage.innerHTML = '<p style="color: var(--error-color); font-weight: bold;">✗ Incorrect Answer</p>';
+            }
+            
+            // Show explanation
+            explanation.textContent = explanationText;
+            feedback.classList.remove('hidden');
+        }
+        
+        // Go to next question or show results
+        function nextQuestion() {
+            const { questions, currentQuestionIndex } = state.currentExam;
+            
+            // Check if this was the last question
+            if (currentQuestionIndex >= questions.length - 1) {
+                showResults();
+                return;
+            }
+            
+            // Go to next question
+            state.currentExam.currentQuestionIndex++;
+            loadQuestion();
+        }
+        
+        // Show final results
+        function showResults() {
+            const { answers } = state.currentExam;
+            const correct = answers.filter(answer => answer.isCorrect).length;
+            const total = answers.length;
+            const percentage = Math.round((correct / total) * 100);
+            
+            // Update results screen
+            correctCount.textContent = correct;
+            incorrectCount.textContent = total - correct;
+            scorePercent.textContent = `${percentage}%`;
+            
+            // Show results screen
+            examScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            // Reset buttons
+            startExamButton.disabled = false;
+            startExamButton.textContent = 'Start Exam';
+        }
+
+    </script>
+</body>
+</html>

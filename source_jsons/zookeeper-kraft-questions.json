@@ -1,0 +1,125 @@
+{
+  "domain": "Zookeeper/KRaft",
+  "questions": [
+    {
+      "id": 1,
+      "question": "In a ZooKeeper ensemble with 5 nodes, what is the maximum number of node failures the ensemble can tolerate while maintaining a quorum?",
+      "options": [
+        "1 node",
+        "2 nodes",
+        "3 nodes",
+        "4 nodes"
+      ],
+      "answer": "2 nodes",
+      "explanation": "In a ZooKeeper ensemble, a quorum requires a majority of nodes (more than half) to be operational. For a 5-node ensemble, a majority is 3 nodes (5/2 + 1 = 3). This means the ensemble can tolerate up to 2 node failures while still maintaining a quorum of 3 nodes. If 3 or more nodes fail, the ensemble would be left with 2 or fewer nodes, which is not a majority, and it would be unable to form a quorum. Without a quorum, ZooKeeper cannot process write requests or elect a new leader if the current leader fails."
+    },
+    {
+      "id": 2,
+      "question": "What is the main advantage of KRaft mode over the traditional ZooKeeper-based approach in Kafka?",
+      "options": [
+        "KRaft mode provides better security through encryption of metadata",
+        "KRaft mode eliminates the need for an external ZooKeeper ensemble, simplifying the architecture",
+        "KRaft mode allows for more partitions per broker than ZooKeeper can manage",
+        "KRaft mode enables cross-cluster replication capabilities"
+      ],
+      "answer": "KRaft mode eliminates the need for an external ZooKeeper ensemble, simplifying the architecture",
+      "explanation": "The main advantage of KRaft (Kafka Raft) mode is that it eliminates the need for an external ZooKeeper ensemble by using the Raft consensus protocol natively within Kafka for metadata management. This significantly simplifies the overall Kafka architecture and operations by reducing the number of components to maintain and monitor. It also avoids the scalability limitations of ZooKeeper, reducing the operational complexity of running Kafka at scale. While KRaft does bring other benefits, such as potential performance improvements and better scaling, the primary advantage is the architectural simplification from removing the ZooKeeper dependency."
+    },
+    {
+      "id": 3,
+      "question": "When migrating from ZooKeeper mode to KRaft mode in Kafka, what is correct about the process?",
+      "options": [
+        "The migration can be performed dynamically without downtime",
+        "A direct in-place migration is possible, preserving all topics and data",
+        "Migration requires a new cluster setup with data replication from the old cluster",
+        "The process requires first formatting the cluster storage with a KRaft cluster ID"
+      ],
+      "answer": "The process requires first formatting the cluster storage with a KRaft cluster ID",
+      "explanation": "When migrating from ZooKeeper mode to KRaft mode in Kafka, the process requires first formatting the cluster storage directories with a KRaft cluster ID using the kafka-storage tool. This is a critical step that prepares the storage for KRaft mode. The migration process typically involves a controlled shutdown of the ZooKeeper-based cluster, configuration changes on the brokers, formatting storage with the KRaft cluster ID, and then starting the cluster in KRaft mode. The migration preserves the topics and data, but it cannot be done dynamically without downtime. It's also not a completely new cluster setup requiring data replication, as the data files remain in place."
+    },
+    {
+      "id": 4,
+      "question": "In KRaft mode, what role does the Kafka controller play?",
+      "options": [
+        "It's responsible only for leader elections, while brokers handle other metadata management",
+        "It maintains a quorum-based record of all cluster metadata that was previously stored in ZooKeeper",
+        "It serves as a proxy between brokers and client applications for authentication",
+        "It's only used during cluster startup and recovery operations, not during normal operations"
+      ],
+      "answer": "It maintains a quorum-based record of all cluster metadata that was previously stored in ZooKeeper",
+      "explanation": "In KRaft mode, the Kafka controller plays a crucial role by maintaining a quorum-based record of all cluster metadata that was previously stored in ZooKeeper. The controller nodes form a quorum using the Raft consensus protocol to ensure consistent metadata management without requiring ZooKeeper. This metadata includes information about topics, partitions, replicas, configurations, ACLs, and other cluster state. The controllers handle all the metadata operations that ZooKeeper previously managed, such as leader elections, partition assignments, and configuration changes, providing a single, integrated system for both data and metadata storage."
+    },
+    {
+      "id": 5,
+      "question": "What is the minimum number of controller nodes recommended for a production KRaft-based Kafka cluster?",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      "answer": "3",
+      "explanation": "The minimum recommended number of controller nodes for a production KRaft-based Kafka cluster is 3. This recommendation ensures fault tolerance through quorum-based decision making. With 3 controller nodes, the cluster can tolerate the failure of 1 node while still maintaining a majority quorum (2 out of 3) for metadata operations. Having only 1 or 2 controller nodes would not provide sufficient fault tolerance for production environments. While 5 controllers would provide even better fault tolerance (tolerating up to 2 failures), 3 is generally considered the minimum viable configuration for production use."
+    },
+    {
+      "id": 6,
+      "question": "In KRaft mode, how can brokers be configured in relation to the controller functionality?",
+      "options": [
+        "Brokers must be configured as either dedicated brokers or dedicated controllers, with no overlap",
+        "All brokers must also act as controllers for proper redundancy",
+        "Brokers can be configured as dedicated brokers, dedicated controllers, or combined (both broker and controller)",
+        "Controllers must run on separate hardware from brokers for security isolation"
+      ],
+      "answer": "Brokers can be configured as dedicated brokers, dedicated controllers, or combined (both broker and controller)",
+      "explanation": "In KRaft mode, Kafka nodes can be configured in three ways: as dedicated brokers that only handle data operations, as dedicated controllers that only handle metadata management, or as combined nodes that perform both functions. This flexibility allows for different deployment strategies based on the cluster's needs. For production deployments, it's often recommended to use dedicated controllers to separate the metadata management workload from data operations. This separation can improve performance and simplify capacity planning, as the controller and broker roles have different resource requirements. However, in smaller environments, combined nodes might be more resource-efficient."
+    },
+    {
+      "id": 7,
+      "question": "What configuration parameter must be set for all brokers in a KRaft cluster to identify the controller nodes?",
+      "options": [
+        "controller.quorum.voters",
+        "kraft.controller.addresses",
+        "kraft.metadata.servers",
+        "controller.listener.names"
+      ],
+      "answer": "controller.quorum.voters",
+      "explanation": "In a KRaft-based Kafka cluster, all brokers must have the controller.quorum.voters parameter configured to identify the controller nodes. This parameter specifies the set of controller nodes that form the Raft quorum for metadata management. The format is a comma-separated list of controller node IDs along with their endpoints, such as '1@host1:port,2@host2:port,3@host3:port'. This configuration is crucial for both controller nodes and regular broker nodes, as it tells them where to find the quorum of controllers that manage the cluster's metadata."
+    },
+    {
+      "id": 8,
+      "question": "Which ports do ZooKeeper ensemble members typically use to communicate with each other and with clients?",
+      "options": [
+        "2181 (client), 2888 (peer communication), 3888 (leader election)",
+        "9092 (client), 9093 (peer communication), 9094 (leader election)",
+        "2181 (client), 9092 (peer communication), 9093 (leader election)",
+        "8080 (client), 8081 (peer communication), 8082 (leader election)"
+      ],
+      "answer": "2181 (client), 2888 (peer communication), 3888 (leader election)",
+      "explanation": "ZooKeeper ensemble members typically use three ports for communication: 2181 for client connections, 2888 for peer communication (followers connecting to leaders), and 3888 for leader election. These ports are specified in the ZooKeeper configuration file, and all ZooKeeper nodes need to be able to communicate with each other on these ports. The client port (2181) is used by Kafka brokers and other clients to connect to ZooKeeper for reading and writing metadata. The peer communication port (2888) is used for replicating data between ZooKeeper nodes, and the leader election port (3888) is used during the leader election process when a leader fails."
+    },
+    {
+      "id": 9,
+      "question": "When setting up a KRaft cluster, what is the purpose of the 'process.roles' configuration parameter?",
+      "options": [
+        "To specify security roles for the Kafka process",
+        "To define whether a node acts as a broker, controller, or both",
+        "To configure role-based access control for clients",
+        "To assign administrative responsibilities to specific users"
+      ],
+      "answer": "To define whether a node acts as a broker, controller, or both",
+      "explanation": "The 'process.roles' configuration parameter in KRaft mode defines whether a Kafka node acts as a broker, controller, or both. The possible values are 'broker' (for data operations only), 'controller' (for metadata management only), or 'broker,controller' (for a combined node that handles both functions). This parameter is fundamental to the KRaft architecture as it determines the role and responsibilities of each node in the cluster. Setting this parameter appropriately for each node according to your cluster design is a crucial step in configuring a KRaft-based Kafka cluster."
+    },
+    {
+      "id": 10,
+      "question": "What command is used to format the storage directories before starting a KRaft-based Kafka cluster?",
+      "options": [
+        "kafka-zk-migrate.sh",
+        "kafka-storage.sh format",
+        "kafka-configs.sh --bootstrap-server localhost:9092 --entity-type brokers --entity-name 0 --alter --add-config kraft=true",
+        "kafka-server-start.sh --kraft"
+      ],
+      "answer": "kafka-storage.sh format",
+      "explanation": "The command used to format the storage directories before starting a KRaft-based Kafka cluster is 'kafka-storage.sh format'. This command prepares the log directories for use with KRaft by generating the necessary metadata structures and initializing them with a cluster ID. The typical usage is 'kafka-storage.sh format -t <cluster-id> -c server.properties', where <cluster-id> is either provided or generated. This formatting step is mandatory when setting up a new KRaft cluster or when migrating from a ZooKeeper-based cluster to KRaft mode. It's a critical initialization step that must be performed before starting the Kafka servers in KRaft mode."
+    }
+  ]
+}

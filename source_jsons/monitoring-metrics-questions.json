@@ -1,0 +1,125 @@
+{
+  "domain": "Monitoring and Metrics",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which Kafka broker metric would you monitor to detect if a broker is having trouble keeping up with the incoming produce requests?",
+      "options": [
+        "UnderReplicatedPartitions",
+        "RequestHandlerAvgIdlePercent",
+        "BytesInPerSec",
+        "OfflinePartitionsCount"
+      ],
+      "answer": "RequestHandlerAvgIdlePercent",
+      "explanation": "RequestHandlerAvgIdlePercent indicates the average percentage of time the request handler threads are idle. A low value (e.g., below 20%) suggests that the broker's request handling threads are very busy processing requests and may be struggling to keep up with incoming load. This could lead to increased latency or even request timeouts. While BytesInPerSec shows the rate of incoming data, it doesn't indicate whether the broker is handling it efficiently. UnderReplicatedPartitions and OfflinePartitionsCount are partition health metrics rather than performance indicators for request handling."
+    },
+    {
+      "id": 2,
+      "question": "What does the UnderReplicatedPartitions metric in Kafka indicate?",
+      "options": [
+        "The number of partitions with fewer replicas than the configured replication factor",
+        "The number of partitions that have lost their leader replicas",
+        "The number of partitions that have at least one replica not in sync with the leader",
+        "The number of partitions that have been created but not yet fully replicated"
+      ],
+      "answer": "The number of partitions that have at least one replica not in sync with the leader",
+      "explanation": "The UnderReplicatedPartitions metric indicates the number of partitions that have at least one replica that is not in sync with the leader. A partition becomes under-replicated when one or more of its replicas fall too far behind the leader or become unavailable, but the partition still has a leader and is operational. This metric is a key indicator of cluster health and replication problems. An increasing value suggests broker failures, network issues, or performance problems. It's different from OfflinePartitionsCount, which indicates partitions without an active leader."
+    },
+    {
+      "id": 3,
+      "question": "To monitor consumer lag in a Kafka cluster, which JMX metric is most useful?",
+      "options": [
+        "kafka.consumer:type=consumer-fetch-manager-metrics,client-id={client-id},topic={topic},partition={partition}.records-lag",
+        "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions",
+        "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec",
+        "kafka.consumer:type=consumer-coordinator-metrics,group-id={group-id}.commit-rate"
+      ],
+      "answer": "kafka.consumer:type=consumer-fetch-manager-metrics,client-id={client-id},topic={topic},partition={partition}.records-lag",
+      "explanation": "The JMX metric kafka.consumer:type=consumer-fetch-manager-metrics,client-id={client-id},topic={topic},partition={partition}.records-lag provides the exact lag in number of records for each consumer group, topic, and partition combination. This is the most direct and useful metric for monitoring consumer lag, as it tells you precisely how far behind each consumer is in processing messages. The other metrics provide information about replication health, message production rate, and consumption throughput, but don't directly measure the gap between the latest produced message and the last consumed message, which defines consumer lag."
+    },
+    {
+      "id": 4,
+      "question": "Which metric should you monitor to detect if a Kafka broker's disk is becoming a performance bottleneck?",
+      "options": [
+        "kafka.server:type=KafkaRequestHandlerPool,name=RequestHandlerAvgIdlePercent",
+        "kafka.server:type=ReplicaManager,name=PartitionCount",
+        "kafka.log:type=Log,name=LogFlushRateAndTimeMs",
+        "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec"
+      ],
+      "answer": "kafka.log:type=Log,name=LogFlushRateAndTimeMs",
+      "explanation": "The LogFlushRateAndTimeMs metric is the most relevant for detecting disk performance bottlenecks in a Kafka broker. It measures both the rate at which log flush operations occur and the time these operations take. Increasing flush times indicate that the disk is struggling to keep up with the write load, which can result in overall broker performance degradation. RequestHandlerAvgIdlePercent is more general and could be affected by various bottlenecks, PartitionCount just shows the number of partitions and doesn't indicate performance, and BytesInPerSec shows incoming data volume but not how well the disk is handling it."
+    },
+    {
+      "id": 5,
+      "question": "In a Kafka cluster, what does the ActiveControllerCount metric indicate?",
+      "options": [
+        "The number of controllers currently active in the cluster (should be 1)",
+        "The number of controller elections that have occurred since startup",
+        "The number of brokers that can become controllers if the current controller fails",
+        "The number of threads handling controller operations on each broker"
+      ],
+      "answer": "The number of controllers currently active in the cluster (should be 1)",
+      "explanation": "ActiveControllerCount indicates the number of active controllers in a Kafka cluster, which should be exactly 1 in a healthy cluster. Each broker reports this metric, with a value of 1 if that broker is the active controller and 0 otherwise. You can sum this metric across all brokers to ensure there's exactly one active controller in the cluster. Multiple active controllers (sum > 1) indicate a split-brain condition that can lead to data inconsistency. No active controller (sum = 0) means the cluster lacks leadership for critical operations like partition assignments and leader elections."
+    },
+    {
+      "id": 6,
+      "question": "Which Kafka metric should you monitor to detect leader partition imbalances across brokers?",
+      "options": [
+        "LeaderImbalancePerBrokerPercentage",
+        "LeaderCount",
+        "ReplicaCount",
+        "LeaderElectionRateAndTimeMs"
+      ],
+      "answer": "LeaderCount",
+      "explanation": "The LeaderCount metric is the best one to monitor to detect leader partition imbalances across brokers. This metric shows the number of partitions for which a broker is the leader. By comparing the LeaderCount across all brokers, you can identify imbalances where some brokers have significantly more leader partitions than others. Such imbalances can lead to uneven load distribution, with some brokers handling more client requests than others. While LeaderImbalancePerBrokerPercentage might sound relevant, it's not a standard Kafka metric. ReplicaCount shows all replicas, not just leaders, and LeaderElectionRateAndTimeMs measures the frequency and duration of leader elections."
+    },
+    {
+      "id": 7,
+      "question": "Your Kafka cluster is experiencing frequent temporary leader partition migrations. Which metric should you examine to identify the root cause?",
+      "options": [
+        "LeaderElectionRateAndTimeMs",
+        "UnderReplicatedPartitions",
+        "ISRShrinkRate",
+        "RequestHandlerAvgIdlePercent"
+      ],
+      "answer": "ISRShrinkRate",
+      "explanation": "The ISRShrinkRate metric should be examined to identify the root cause of frequent temporary leader partition migrations. This metric measures how frequently replicas are dropping out of the in-sync replica set (ISR). A high ISRShrinkRate indicates that replicas are frequently falling behind the leader and being removed from the ISR, which can trigger leader elections and migrations. Common causes include disk or network performance issues, insufficient broker resources, or problems with the hosts running the brokers. While LeaderElectionRateAndTimeMs might seem relevant, it shows the symptom (leader elections) rather than the underlying cause (replicas falling out of sync)."
+    },
+    {
+      "id": 8,
+      "question": "Which tool is built into Kafka and can be used to easily view JMX metrics through the command line?",
+      "options": [
+        "kafka-console-producer.sh",
+        "kafka-topics.sh",
+        "kafka-run-class.sh kafka.tools.JmxTool",
+        "kafka-configs.sh"
+      ],
+      "answer": "kafka-run-class.sh kafka.tools.JmxTool",
+      "explanation": "Kafka includes a built-in command-line tool called JmxTool that can be used to view JMX metrics. It can be accessed via kafka-run-class.sh kafka.tools.JmxTool. This tool allows you to query and monitor JMX metrics from Kafka brokers, producers, and consumers without requiring a separate monitoring system. You can use it to watch specific metrics over time, filter metrics using regular expressions, and output the results in different formats. The other tools listed (kafka-console-producer.sh, kafka-topics.sh, and kafka-configs.sh) are for producing messages, managing topics, and managing configurations, respectively, not for accessing JMX metrics."
+    },
+    {
+      "id": 9,
+      "question": "Which metric should you monitor to ensure your producers are properly batching messages?",
+      "options": [
+        "batch-size-avg",
+        "record-send-rate",
+        "records-per-request-avg",
+        "request-latency-avg"
+      ],
+      "answer": "records-per-request-avg",
+      "explanation": "The records-per-request-avg metric is the most useful for ensuring producers are properly batching messages. This metric shows the average number of records sent per request, which directly indicates how well batching is working. A higher value means more records are being batched together in each request, which generally improves efficiency. If this value is consistently low (e.g., close to 1), it suggests that batching isn't effective, possibly due to low traffic, aggressive linger.ms or batch.size settings, or other configuration issues. The batch-size-avg metric is related but measures size in bytes, not record count. record-send-rate shows throughput but not batching efficiency, and request-latency-avg measures request timing rather than batching effectiveness."
+    },
+    {
+      "id": 10,
+      "question": "What is the best way to monitor Kafka consumer group lag at scale across many consumer groups and topics?",
+      "options": [
+        "Use the kafka-consumer-groups.sh tool with --describe for each group",
+        "Create a custom JMX monitoring solution that scrapes consumer metrics",
+        "Configure consumers to report their lag to a central monitoring system",
+        "Use Kafka's built-in lag monitoring API with an enterprise monitoring solution"
+      ],
+      "answer": "Create a custom JMX monitoring solution that scrapes consumer metrics",
+      "explanation": "For monitoring consumer group lag at scale across many consumer groups and topics, creating a custom JMX monitoring solution that scrapes consumer metrics is the most effective approach. This solution would involve using a monitoring system like Prometheus with JMX exporter to collect metrics from all consumers, storing the data, and visualizing it with tools like Grafana. This approach scales well to many consumer groups and topics, provides historical data for trend analysis, allows for alerting, and can be integrated with existing monitoring infrastructure. The kafka-consumer-groups.sh tool doesn't scale well for many groups and doesn't provide historical data. While consumers could report lag to a central system, this requires custom code in every consumer. Kafka doesn't have a built-in lag monitoring API separate from the metrics exposed via JMX."
+    }
+  ]
+}

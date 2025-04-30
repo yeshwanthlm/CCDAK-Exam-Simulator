@@ -1,0 +1,238 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "category": "Schema Registry - Compatibility Modes",
+      "question": "A development team is adding a new mandatory field to an existing Avro schema. Which compatibility mode would allow this change while ensuring that new consumers can read data produced with the old schema?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "NONE"
+      ],
+      "answer": "BACKWARD",
+      "explanation": "BACKWARD compatibility allows new consumers to read data produced with old schemas. Adding a mandatory field (a field without a default value) is backward compatible because new consumers can read old data that doesn't have this field, as long as they're programmed to handle its absence. However, this change is not forward compatible because old consumers wouldn't know how to handle the new mandatory field. FULL compatibility requires both BACKWARD and FORWARD compatibility, so it wouldn't allow this change. NONE would allow any change but removes compatibility safeguards."
+    },
+    {
+      "id": 2,
+      "category": "Schema Registry - Compatibility Modes",
+      "question": "A team needs to modify an Avro schema by removing a field. Their producers will use the new schema, but some consumers are still using the old schema that expects this field. Which compatibility mode should they set?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "NONE"
+      ],
+      "answer": "FORWARD",
+      "explanation": "FORWARD compatibility ensures that old consumers can read data produced with newer schemas. Removing a field is forward compatible because old consumers that expect the field can still process records that don't have it (Avro will use the default value for the field if one was specified, or null for union types with null). However, this change is not backward compatible because new consumers wouldn't expect this field in old data. Since the question specifies that some consumers are still using the old schema, FORWARD compatibility is needed to ensure they can continue to read data produced with the new schema."
+    },
+    {
+      "id": 3,
+      "category": "Schema Registry - Compatibility Modes",
+      "question": "A team wants to ensure maximum flexibility for schema evolution while still maintaining compatibility between producers and consumers. They plan to make changes like adding fields with defaults, renaming fields using aliases, and removing fields that are no longer needed. Which compatibility mode should they choose?",
+      "options": [
+        "BACKWARD",
+        "FORWARD",
+        "FULL",
+        "BACKWARD_TRANSITIVE"
+      ],
+      "answer": "FULL",
+      "explanation": "FULL compatibility is the most restrictive mode that ensures both BACKWARD and FORWARD compatibility. It allows changes like adding fields with default values and removing optional fields (with default values). Using Avro aliases, fields can also be renamed while maintaining compatibility. FULL compatibility ensures that new consumers can read old data (backward compatibility) and old consumers can read new data (forward compatibility), providing the maximum compatibility while still allowing some flexibility for schema evolution. BACKWARD or FORWARD individually would be more limited, while BACKWARD_TRANSITIVE applies backward compatibility checking against all previous schema versions, which is more restrictive than needed here."
+    },
+    {
+      "id": 4,
+      "category": "Java Producer Code",
+      "question": "Consider the following Kafka producer code snippet:\n\n```java\nKafkaProducer<String, String> producer = new KafkaProducer<>(props);\ntry {\n    producer.send(new ProducerRecord<String, String>(\n        \"my-topic\", \"key\", \"value\"),\n        new Callback() {\n            public void onCompletion(RecordMetadata metadata, Exception e) {\n                if (e != null) {\n                    e.printStackTrace();\n                } else {\n                    System.out.println(\"Sent successfully to partition \" + \n                                     metadata.partition() + \" at offset \" + \n                                     metadata.offset());\n                }\n            }\n        }\n    );\n} finally {\n    producer.close();\n}\n```\n\nWhen is the Callback's onCompletion method triggered?",
+      "options": [
+        "Immediately after send() is called",
+        "When the broker acknowledges receipt of the message",
+        "When producer.close() is called",
+        "When the message is successfully consumed by a consumer"
+      ],
+      "answer": "When the broker acknowledges receipt of the message",
+      "explanation": "The Callback's onCompletion method is triggered when the broker acknowledges receipt of the message according to the producer's 'acks' configuration. This occurs asynchronously after the send() method returns. If the message is successfully written to the broker, the callback receives the RecordMetadata with partition and offset information. If there's an error, the callback receives the Exception object. The callback is not triggered immediately after send() (which returns a Future), nor when producer.close() is called, nor when a consumer reads the message (the producer has no knowledge of consumption)."
+    },
+    {
+      "id": 5,
+      "category": "Java Producer Code",
+      "question": "In the following Kafka producer code, what will happen if a message exceeds the maximum request size configured on the broker?\n\n```java\nProperties props = new Properties();\nprops.put(\"bootstrap.servers\", \"localhost:9092\");\nprops.put(\"key.serializer\", \"org.apache.kafka.common.serialization.StringSerializer\");\nprops.put(\"value.serializer\", \"org.apache.kafka.common.serialization.StringSerializer\");\nprops.put(\"acks\", \"all\");\nprops.put(\"retries\", 3);\n\nProducer<String, String> producer = new KafkaProducer<>(props);\nProducerRecord<String, String> record = new ProducerRecord<>(\"large-messages\", \"key\", veryLargeValue);\nFuture<RecordMetadata> future = producer.send(record);\nRecordMetadata metadata = future.get();\n```",
+      "options": [
+        "The producer will automatically split the message into smaller chunks",
+        "The producer will throw a RecordTooLargeException during the send() call",
+        "The future.get() call will throw an ExecutionException wrapping a RecordTooLargeException",
+        "The broker will accept the message but truncate it to the maximum allowed size"
+      ],
+      "answer": "The future.get() call will throw an ExecutionException wrapping a RecordTooLargeException",
+      "explanation": "When a message exceeds the maximum request size configured on the broker (message.max.bytes), the broker will reject it. Since the producer is using future.get() to wait for the send result, it will receive an ExecutionException that wraps a RecordTooLargeException. The producer itself doesn't know the message size limits on the broker when send() is called, so the exception occurs when the broker rejects the message, not during the initial send() call. The producer doesn't automatically split large messages, and the broker doesn't truncate oversized messages - it rejects them entirely. The retries configuration won't help since this is a non-retriable error."
+    },
+    {
+      "id": 6,
+      "category": "KSQL/KStreams",
+      "question": "Analyze the following KSQL query:\n\n```sql\nCREATE TABLE user_counts AS\n  SELECT userId,\n         COUNT(*) AS count\n  FROM user_clicks\n  GROUP BY userId\n  EMIT CHANGES;\n```\n\nWhat will this query produce?",
+      "options": [
+        "A stream of all user clicks with a running count for each user",
+        "A table that shows the current total count of clicks for each user",
+        "A stream of user IDs with their click counts at regular intervals",
+        "A one-time snapshot of user click counts"
+      ],
+      "answer": "A table that shows the current total count of clicks for each user",
+      "explanation": "This KSQL query creates a table (CREATE TABLE) that maintains the current total count of clicks for each user. The GROUP BY userId clause groups all click events by user ID, and the COUNT(*) aggregation counts the number of events for each user. Since it creates a TABLE rather than a STREAM, it represents the current state (the latest count) for each user rather than an event stream of all changes. The EMIT CHANGES clause indicates that this is a continuous query that will update the table as new click events arrive. As new clicks come in, the count for the respective user will be updated in the table."
+    },
+    {
+      "id": 7,
+      "category": "KSQL/KStreams",
+      "question": "Consider the following Kafka Streams code:\n\n```java\nKStream<String, Order> orders = ...\nGlobalKTable<String, Customer> customers = ...\n\nKStream<String, EnrichedOrder> joined = orders.join(\n    customers,\n    (orderId, order) -> order.getCustomerId(), // key mapping function\n    (order, customer) -> new EnrichedOrder(order, customer) // value joiner\n);\n```\n\nWhat advantage does using a GlobalKTable for the customers data provide in this join operation?",
+      "options": [
+        "It ensures exactly-once processing semantics for the join",
+        "It allows joining based on fields other than the message key",
+        "It requires fewer Kafka topics than a KStream-KStream join",
+        "It allows joining data from topics with different partition counts"
+      ],
+      "answer": "It allows joining data from topics with different partition counts",
+      "explanation": "A key advantage of using a GlobalKTable in a join operation is that it allows joining data from topics with different partition counts. Unlike KStream-KStream or KStream-KTable joins which require co-partitioning (same number of partitions and same partitioning strategy), a GlobalKTable contains a complete copy of the table data on each instance of the application. This means the join doesn't require co-partitioning, allowing for joins between topics with different partition counts. Additionally, the key mapping function ((orderId, order) -> order.getCustomerId()) in the example allows joining based on a field other than the message key, which is another advantage of GlobalKTable joins."
+    },
+    {
+      "id": 8,
+      "category": "Kafka Connect",
+      "question": "A team needs to configure a JDBC Sink Connector to write data from a Kafka topic to a relational database. Which configuration setting determines how the connector handles records with keys that already exist in the database?",
+      "options": [
+        "db.mode",
+        "insert.mode",
+        "primary.key.mode",
+        "update.strategy"
+      ],
+      "answer": "insert.mode",
+      "explanation": "For a JDBC Sink Connector, the insert.mode configuration determines how the connector handles records with keys that already exist in the database. Common options include: 'insert' (which will fail on duplicate keys), 'upsert' (which will update existing records or insert new ones), and 'update' (which will only update existing records). This setting is crucial for defining how Kafka data maps to database operations. The other options don't exist in the standard JDBC Sink Connector configuration (db.mode, update.strategy) or control different behavior (primary.key.mode determines how primary keys are handled, not how duplicates are managed)."
+    },
+    {
+      "id": 9,
+      "category": "Kafka Connect",
+      "question": "Which configuration is required when setting up a source connector to limit how many tasks it can create for parallelism?",
+      "options": [
+        "max.partitions",
+        "tasks.max",
+        "concurrent.tasks",
+        "parallelism.factor"
+      ],
+      "answer": "tasks.max",
+      "explanation": "The tasks.max configuration is required when setting up a source connector to limit how many tasks it can create for parallelism. This setting specifies the maximum number of tasks that the connector can create to parallelize data ingestion. Each task is responsible for a subset of the data to be ingested. The connector might create fewer tasks than this maximum value if it can't achieve this level of parallelism based on the source system's structure. The other options (max.partitions, concurrent.tasks, parallelism.factor) are not standard Kafka Connect configuration properties."
+    },
+    {
+      "id": 10,
+      "category": "Serialization",
+      "question": "A team needs to implement a custom serializer for a complex object that cannot be efficiently represented using standard serializers. Which interface must their custom serializer implement?",
+      "options": [
+        "org.apache.kafka.common.serialization.Serializer<T>",
+        "org.apache.kafka.common.Serialize<T>",
+        "org.apache.kafka.serialization.CustomSerializer<T>",
+        "org.apache.kafka.clients.producer.Serializer<T>"
+      ],
+      "answer": "org.apache.kafka.common.serialization.Serializer<T>",
+      "explanation": "A custom serializer in Kafka must implement the org.apache.kafka.common.serialization.Serializer<T> interface. This interface has three methods that must be implemented: configure(Map<String, ?> configs, boolean isKey), serialize(String topic, T data), and close(). The serialize method is the core method that converts the object of type T into a byte array for transmission to Kafka. The other interface options either don't exist in the Kafka API or are incorrectly named."
+    },
+    {
+      "id": 11,
+      "category": "Serialization",
+      "question": "Which of the following correctly describes how Avro serialization works with the Confluent Schema Registry?",
+      "options": [
+        "Each Avro message includes the full schema definition embedded within it",
+        "The producer sends the schema to the broker, which validates it against the registry",
+        "The message includes a schema ID, and the consumer fetches the schema from the registry if needed",
+        "The registry injects the schema into messages before they reach the consumer"
+      ],
+      "answer": "The message includes a schema ID, and the consumer fetches the schema from the registry if needed",
+      "explanation": "When using Avro serialization with the Confluent Schema Registry, each serialized message includes a schema ID (typically a 4-byte integer) that references the schema in the Schema Registry, followed by the Avro-serialized data. This approach optimizes message size by not including the full schema in each message. When a consumer receives a message, it uses this schema ID to retrieve the full schema from the Schema Registry if it's not already cached, then uses that schema to deserialize the data. This system allows efficient serialization while maintaining schema compatibility between producers and consumers."
+    },
+    {
+      "id": 12,
+      "category": "Internal Topics",
+      "question": "Which internal Kafka topic stores consumer group offsets, and what happens if this topic is deleted?",
+      "options": [
+        "__consumer_offsets; consumer groups will start consuming from the beginning of topics",
+        "__consumer_offsets; consumer groups will continue from their last in-memory checkpoint",
+        "__consumer_groups; consumers will fail to start until the topic is recreated",
+        "__offsets; consumers will recreate the topic automatically"
+      ],
+      "answer": "__consumer_offsets; consumer groups will start consuming from the beginning of topics",
+      "explanation": "The __consumer_offsets internal topic stores the committed offsets for consumer groups. If this topic is deleted, consumers lose their checkpoint information about which messages they have already processed. When consumers restart or rebalance, they will have no record of their previous position and will fall back to their auto.offset.reset policy (typically 'earliest' or 'latest'). With 'earliest', they will start consuming from the beginning of the topics, potentially reprocessing a large volume of messages. The topic will be automatically recreated when consumers commit offsets again, but the previously committed offset information will be lost."
+    },
+    {
+      "id": 13,
+      "category": "Internal Topics",
+      "question": "What is the purpose of the _schemas internal topic used by Schema Registry?",
+      "options": [
+        "It stores all schemas registered by producers for validation",
+        "It manages schema versions and enforces compatibility rules",
+        "It contains message schemas that fail validation",
+        "It synchronizes schema information across multiple Schema Registry instances"
+      ],
+      "answer": "It stores all schemas registered by producers for validation",
+      "explanation": "The _schemas internal topic is used by the Confluent Schema Registry to store all schemas that have been registered. This topic serves as the persistent storage for schemas, allowing the Schema Registry to recover its state after restarts and to synchronize schema information across multiple Schema Registry instances. Each message in this topic represents a schema registration, update, or deletion event. The Schema Registry reads this topic on startup to rebuild its in-memory cache of schemas, which it then uses to validate new schemas against compatibility rules and to provide schemas to consumers for deserializing messages."
+    },
+    {
+      "id": 14,
+      "category": "Producer Configs",
+      "question": "What is the effect of setting linger.ms=100 on a Kafka producer?",
+      "options": [
+        "The producer will wait up to 100ms for a response from the broker",
+        "The producer will retry failed messages for up to 100ms",
+        "The producer will delay sending messages by up to 100ms to allow more messages in a batch",
+        "The producer will wait 100ms between consecutive send operations"
+      ],
+      "answer": "The producer will delay sending messages by up to 100ms to allow more messages in a batch",
+      "explanation": "Setting linger.ms=100 means the producer will delay sending messages by up to 100ms to allow more messages to accumulate in a batch. This increases the likelihood of filling batches, which improves compression efficiency and reduces the number of requests sent to the broker, potentially increasing throughput at the cost of slightly higher latency. If a batch becomes full before the linger.ms timeout, it will be sent immediately. This setting is particularly useful in high-throughput scenarios where the small added latency is acceptable in exchange for better efficiency and resource utilization."
+    },
+    {
+      "id": 15,
+      "category": "Producer Configs",
+      "question": "A production Kafka environment is experiencing performance issues, and analysis shows that producers are sending many small requests. Which producer configuration would most effectively improve throughput?",
+      "options": [
+        "Increase max.in.flight.requests.per.connection",
+        "Set compression.type to 'snappy' or 'lz4'",
+        "Increase batch.size and linger.ms",
+        "Set acks=0 to eliminate acknowledgment overhead"
+      ],
+      "answer": "Increase batch.size and linger.ms",
+      "explanation": "When producers are sending many small requests, increasing batch.size and linger.ms would most effectively improve throughput. A larger batch.size allows more messages to be grouped together in a single request, while a higher linger.ms gives more time for batches to fill up before sending. Together, these settings reduce the number of requests sent to the brokers, improving overall throughput and reducing per-message overhead. While compression (option B) can also help, it's most effective when combined with proper batching. Increasing max.in.flight.requests (option A) might increase concurrency but doesn't address the small request issue. Setting acks=0 (option D) might increase speed but at the cost of reliability, making it a less desirable solution."
+    },
+    {
+      "id": 16,
+      "category": "Consumer Configs",
+      "question": "What is the purpose of the max.poll.records configuration in a Kafka consumer?",
+      "options": [
+        "It limits the maximum number of records returned from the broker in a single fetch",
+        "It limits the maximum number of records returned in a single call to poll()",
+        "It controls how many records the consumer can process before committing offsets",
+        "It sets the maximum number of records that can be stored in the consumer's buffer"
+      ],
+      "answer": "It limits the maximum number of records returned in a single call to poll()",
+      "explanation": "The max.poll.records configuration limits the maximum number of records returned in a single call to poll(). This setting controls the maximum number of records that a single poll() will return to the consumer. It does not affect how many records the broker sends in a single fetch (which is controlled by fetch.max.bytes and max.partition.fetch.bytes). This configuration is useful for controlling the amount of data that needs to be processed at once, allowing the application to limit memory usage and potentially process records more frequently with smaller batches."
+    },
+    {
+      "id": 17,
+      "category": "Consumer Configs",
+      "question": "A Kafka consumer application occasionally takes a long time to process a batch of records, causing rebalancing issues. Which configuration parameter should be adjusted to solve this problem?",
+      "options": [
+        "session.timeout.ms",
+        "heartbeat.interval.ms",
+        "max.poll.interval.ms",
+        "request.timeout.ms"
+      ],
+      "answer": "max.poll.interval.ms",
+      "explanation": "The max.poll.interval.ms configuration should be adjusted to solve this problem. This parameter sets the maximum time between consecutive poll() calls before the consumer is considered failed and a rebalance is triggered. When an application takes a long time to process records, it may exceed this interval, causing the consumer to be removed from the group and triggering a rebalance. Increasing max.poll.interval.ms gives the application more time to process records before needing to call poll() again. Alternatively, the application could reduce max.poll.records to process smaller batches, but adjusting max.poll.interval.ms directly addresses the timeout issue."
+    },
+    {
+      "id": 18,
+      "category": "Broker Configs",
+      "question": "What is the impact of setting unclean.leader.election.enable=true in a Kafka broker configuration?",
+      "options": [
+        "It prioritizes availability over consistency by allowing out-of-sync replicas to become leaders",
+        "It ensures data consistency by preventing out-of-sync replicas from becoming leaders",
+        "It improves performance by allowing any replica to handle read requests",
+        "It enables the election of multiple leaders for the same partition to distribute read load"
+      ],
+      "answer": "It prioritizes availability over consistency by allowing out-of-sync replicas to become leaders",
+      "explanation": "Setting unclean.leader.election.enable=true prioritizes availability over consistency by allowing out-of-sync replicas (replicas that aren't in the ISR) to become leaders when all replicas in the in-sync replica set (ISR) are unavailable. This can lead to data loss because out-of-sync replicas may not have all the committed data. However, it ensures that the partition remains available for reads and writes even when all in-sync replicas are down. With this setting as false (the default in newer versions), a partition will become unavailable rather than risking data loss when no in-sync replicas are available to become leaders."
+    }
+  ]
+}
